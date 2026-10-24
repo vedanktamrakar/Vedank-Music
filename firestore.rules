@@ -1,8 +1,0 @@
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    function admin() { return request.auth != null && request.auth.token.email == 'vedankmusic@proton.me' && request.auth.token.email_verified == true; }
-    match /siteContent/{id} { allow read: if true; allow write: if admin(); }
-    match /{p=**} { allow read, write: if false; }
-  }
-}
