@@ -9,38 +9,91 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="/common.js"></script>
 <script>
-function mk(el,fov,z){var s=new THREE.Scene(),c=new THREE.PerspectiveCamera(fov,1,0.1,100),r=new THREE.WebGLRenderer({antialias:true,alpha:true});r.setPixelRatio(devicePixelRatio);el.appendChild(r.domElement);c.position.z=z;function rs(){var w=el.clientWidth,h=el.clientHeight;r.setSize(w,h);c.aspect=w/h;c.updateProjectionMatrix()}addEventListener('resize',rs);rs();return{s:s,c:c,r:r}}
-function M(c,e,r){return new THREE.MeshStandardMaterial({color:c,metalness:1,roughness:r||.25,emissive:c,emissiveIntensity:e||0})}
-function note(c){var g=new THREE.Group(),h=new THREE.Mesh(new THREE.SphereGeometry(.16,24,24),M(c,.5,.3)),st=new THREE.Mesh(new THREE.BoxGeometry(.06,.7,.06),M(c,.3,.3));st.position.set(.12,.4,0);var fl=new THREE.Mesh(new THREE.BoxGeometry(.28,.05,.05),M(c,.3,.3));fl.position.set(.26,.72,0);g.add(h,st,fl);return g}
+function mk(el,fov,z){var s=new THREE.Scene(),c=new THREE.PerspectiveCamera(fov,1,0.1,100),r=new THREE.WebGLRenderer({antialias:true,alpha:true});r.setPixelRatio(Math.min(devicePixelRatio,2));el.appendChild(r.domElement);c.position.z=z;function rs(){var w=el.clientWidth,h=el.clientHeight;r.setSize(w,h);c.aspect=w/h;c.updateProjectionMatrix()}addEventListener('resize',rs);rs();return{s:s,c:c,r:r}}
+function M(c,e,r){return new THREE.MeshStandardMaterial({color:c,metalness:.9,roughness:r||.2,emissive:c,emissiveIntensity:e||.15})}
+function note(c){var g=new THREE.Group(),h=new THREE.Mesh(new THREE.SphereGeometry(.18,32,32),M(c,.6,.2)),st=new THREE.Mesh(new THREE.BoxGeometry(.05,.8,.05),M(c,.4,.2));st.position.set(.14,.45,0);var fl=new THREE.Mesh(new THREE.BoxGeometry(.32,.06,.06),M(c,.4,.2));fl.position.set(.3,.82,0);g.add(h,st,fl);return g}
 var T=[];
-try{var X=mk($('#stage'),50,6),v=new THREE.Mesh(new THREE.SphereGeometry(2,64,64),M(0x1456ff,.25,.35)),g=new THREE.Group();g.add(v);X.s.add(g,new THREE.AmbientLight(0xffffff,.8),new THREE.PointLight(0xd4a017,3,20));
-for(var i=1;i<6;i++){var gr=new THREE.Mesh(new THREE.TorusGeometry(.5+i*.22,.012,8,64),M(0x4f86ff,1,.2));gr.position.z=.075;g.add(gr)}
-var lb=new THREE.Mesh(new THREE.CylinderGeometry(.5,.5,.16,48),M(0xe5172b,.6,.3));lb.rotation.x=Math.PI/2;var bl=new THREE.Mesh(new THREE.SphereGeometry(.2,32,32),M(0xd4a017,1,.15));bl.position.z=.12;g.add(lb,bl);
-var rs=[],cs=[0xd4a017,0xe5172b,0xd4a017];for(var k=0;k<3;k++){var p=new THREE.Group(),o=new THREE.Mesh(new THREE.SphereGeometry(.14,24,24),M(k==1?0x1456ff:0xe5172b,.8,.2));o.position.x=2.3+k*.35;p.add(new THREE.Mesh(new THREE.TorusGeometry(2.3+k*.35,.04,16,100),M(cs[k],1,.2)),o);p.rotation.set(1+k*.5,k*.9,k*.4);p.userData.sp=.01+k*.006;g.add(p);rs.push(p)}
-var ns=[];for(var i=0;i<9;i++){var n=note([0xd4a017,0xe5172b,0x1456ff][i%3]);n.userData={a:i*.7,r:3.2+i%3*.5,y:(i%4-1.5)*.9};X.s.add(n);ns.push(n)}
-var mx=0,my=0;addEventListener('pointermove',function(e){mx=e.clientX/innerWidth-.5;my=e.clientY/innerHeight-.5});
-T.push(function(t){v.rotation.y+=.01;rs.forEach(function(q){q.rotation.z+=q.userData.sp});g.rotation.y+=(mx*1.2-g.rotation.y)*.05;g.rotation.x+=(my*.8-g.rotation.x)*.05;g.position.y=Math.sin(t*1.2)*.15;ns.forEach(function(n,i){var u=n.userData;u.a+=.004;n.position.set(Math.cos(u.a)*u.r,u.y+Math.sin(t+i)*.3,Math.sin(u.a)*u.r*.6);n.rotation.y+=.03;n.rotation.z=Math.sin(t+i)*.3});X.r.render(X.s,X.c)})}catch(e){$('#stage').innerHTML='<img src="/emblem.webp" alt="" style="width:100%;mix-blend-mode:multiply">'}
-try{var Y=mk($('#d3'),40,7.5),ar=2.8,hh=2.2,ww=hh*ar,gd=M(0xd4a017,1,.25),G=new THREE.Group(),fr=new THREE.Mesh(new THREE.BoxGeometry(ww+.3,hh+.3,.3),gd),tx=new THREE.TextureLoader().load('/ddex.webp'),mm=new THREE.MeshBasicMaterial({map:tx}),f1=new THREE.Mesh(new THREE.PlaneGeometry(ww,hh),mm),f2=f1.clone();f1.position.z=.16;f2.position.z=-.16;f2.rotation.y=Math.PI;G.add(fr,f1,f2);var ring=new THREE.Mesh(new THREE.TorusGeometry(2.9,.05,16,100),M(0x1456ff,.9,.2)),orb=new THREE.Mesh(new THREE.SphereGeometry(.18,24,24),M(0xe5172b,.8,.2));orb.position.x=2.9;ring.add(orb);ring.rotation.x=1.2;Y.s.add(G,ring);T.push(function(t){G.rotation.y=Math.sin(t)*.7;G.rotation.x=Math.sin(t*.7)*.15;G.position.y=Math.sin(t*1.3)*.1;ring.rotation.z+=.015;Y.r.render(Y.s,Y.c)})}catch(e){}
+try{
+  var X=mk($('#stage'),45,7);
+  var g=new THREE.Group();
+  // Main vinyl disc with concentric rings
+  var disc=new THREE.Mesh(new THREE.CylinderGeometry(2.2,2.2,.12,64),M(0x0a1a4a,.3,.15));
+  disc.rotation.x=Math.PI/2;
+  g.add(disc);
+  for(var i=1;i<=8;i++){
+    var ring=new THREE.Mesh(new THREE.TorusGeometry(0.3+i*0.22,.018,8,80),M(i%2?0x4f86ff:0x1a3fb5,.8,.1));
+    ring.position.z=.07;
+    g.add(ring);
+  }
+  var center=new THREE.Mesh(new THREE.CylinderGeometry(.45,.45,.14,48),M(0xe5172b,.7,.2));
+  center.rotation.x=Math.PI/2;center.position.z=.08;
+  var hole=new THREE.Mesh(new THREE.SphereGeometry(.18,32,32),M(0xd4a017,1,.1));
+  hole.position.z=.12;
+  g.add(center,hole);
+  X.s.add(g,new THREE.AmbientLight(0xffffff,.6),new THREE.PointLight(0xd4a017,4,25),new THREE.PointLight(0x1456ff,2,15));
+  // Orbiting rings with balls
+  var orbits=[];
+  var cols=[0xd4a017,0xe5172b,0x1456ff];
+  for(var k=0;k<3;k++){
+    var p=new THREE.Group();
+    var orb=new THREE.Mesh(new THREE.SphereGeometry(.16,24,24),M(cols[k],.9,.15));
+    orb.position.x=2.6+k*.4;
+    p.add(new THREE.Mesh(new THREE.TorusGeometry(2.6+k*.4,.035,12,100),M(cols[k],.7,.15)),orb);
+    p.rotation.set(1.1+k*.4,k*.8,k*.3);
+    p.userData.sp=.008+k*.004;
+    g.add(p);orbits.push(p);
+  }
+  // Floating notes
+  var notes=[];
+  for(var i=0;i<8;i++){
+    var n=note([0xd4a017,0xe5172b,0x1456ff][i%3]);
+    n.userData={a:i*.8,r:3.4+i%2*.6,y:(i%5-2)*.7};
+    X.s.add(n);notes.push(n);
+  }
+  var mx=0,my=0;
+  addEventListener('pointermove',function(e){mx=e.clientX/innerWidth-.5;my=e.clientY/innerHeight-.5});
+  T.push(function(t){
+    disc.rotation.z+=.008;
+    orbits.forEach(function(q){q.rotation.z+=q.userData.sp});
+    g.rotation.y+=(mx*1.4-g.rotation.y)*.04;
+    g.rotation.x+=(my*.6-g.rotation.x)*.04;
+    g.position.y=Math.sin(t*1.1)*.12;
+    notes.forEach(function(n,i){var u=n.userData;u.a+=.005;n.position.set(Math.cos(u.a)*u.r,u.y+Math.sin(t+i)*.25,Math.sin(u.a)*u.r*.5);n.rotation.y+=.02});
+    X.r.render(X.s,X.c);
+  });
+}catch(e){$('#stage').innerHTML='<img src="/emblem.webp" alt="" style="width:100%;mix-blend-mode:multiply">'}
+try{
+  var Y=mk($('#d3'),40,7.5);
+  var gd=M(0xd4a017,1,.2);
+  var G=new THREE.Group();
+  var fr=new THREE.Mesh(new THREE.BoxGeometry(5.5,3.2,.25),gd);
+  var tx=new THREE.TextureLoader().load('/ddex.webp');
+  var mm=new THREE.MeshBasicMaterial({map:tx});
+  var f1=new THREE.Mesh(new THREE.PlaneGeometry(5.2,2.9),mm);f1.position.z=.14;
+  var f2=f1.clone();f2.position.z=-.14;f2.rotation.y=Math.PI;
+  G.add(fr,f1,f2);
+  var ring=new THREE.Mesh(new THREE.TorusGeometry(3.1,.04,12,100),M(0x1456ff,.8,.15));
+  var orb=new THREE.Mesh(new THREE.SphereGeometry(.2,24,24),M(0xe5172b,.9,.15));orb.position.x=3.1;
+  ring.add(orb);ring.rotation.x=1.1;
+  Y.s.add(G,ring,new THREE.AmbientLight(0xffffff,.7));
+  T.push(function(t){G.rotation.y=Math.sin(t)*.6;G.position.y=Math.sin(t*1.2)*.08;ring.rotation.z+=.012;Y.r.render(Y.s,Y.c)});
+}catch(e){}
 (function a(t){requestAnimationFrame(a);T.forEach(function(f){f(t*.001)})})(0);
 </script>
 <script>
-// Always render artists (fallback to hardcoded D if Firebase empty)
 function renderArtists(list){
   var g=document.getElementById('grid');
-  if(!g)return;
+  if(!g||!list)return;
   g.innerHTML=list.map(function(a){
-    var img=U?U(a.image):('/'+a.image);
-    var links=(a.links||[]).map(function(l){return '<a class="pl glass" target="_blank" href="'+l.url+'">'+ (LB[l.type]||l.type) +'</a>';}).join('');
-    return '<article class="glass card art reveal"><a href="/artist/'+a.slug+'"><img src="'+img+'" alt="'+a.name+'"></a><small>'+(a.genre||'')+'</small><h3>'+a.name+'</h3><p>'+(a.about||'')+'</p><div>'+links+'</div><a class="btn" href="/artist/'+a.slug+'" style="margin-top:8px">▶ View songs</a></article>';
+    var img=(typeof U==='function')?U(a.image):('/'+(a.image||'monogram.webp'));
+    var links=(a.links||[]).filter(function(l){return l.url}).map(function(l){return '<a class="pl glass" target="_blank" rel="noopener" href="'+l.url+'">'+(LB&&LB[l.type]?LB[l.type]:l.type)+'</a>';}).join('');
+    return '<article class="glass card art reveal"><a href="/artist/'+a.slug+'"><img src="'+img+'" alt="'+a.name+'" loading="lazy"></a><small>'+(a.genre||'')+'</small><h3>'+a.name+'</h3><p style="margin:6px 0;line-height:1.5;color:#33456e">'+(a.about||'')+'</p><div>'+links+'</div><a class="btn" href="/artist/'+a.slug+'" style="margin-top:8px">▶ View songs</a></article>';
   }).join('');
   if(typeof obs==='function')obs();
 }
-if(typeof D!=='undefined')renderArtists(D);
+if(typeof D!=='undefined'&&D.length)renderArtists(D);
 </script>
 <script type="module">
 import{loadAll}from"/db.js";
-try{
-  var r=await loadAll();
-  if(r.artists&&r.artists.length)renderArtists(r.artists);
-}catch(e){}
+try{var r=await loadAll();if(r.artists&&r.artists.length)renderArtists(r.artists);}catch(e){}
 </script></body></html>
