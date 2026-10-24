@@ -1,0 +1,9 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Join | Vedank Music</title><meta name="robots" content="noindex"><link rel="icon" href="/monogram.webp"><link rel="stylesheet" href="/style.css"></head><body>
+<nav class="glass"><a href="/"><img src="/wordmark.webp" alt="Vedank Music"></a></nav>
+<main class="wrap" style="padding:40px 0"><div class="glass card" style="max-width:420px;margin:auto;text-align:center"><h2>Only Invitation</h2><p style="margin:10px 0 20px;color:#5a6b92">Login with your invited account</p><form id="f"><input id="e" type="email" placeholder="Email" required><input id="p" type="password" placeholder="Password" required><button class="btn" style="width:100%">Login</button></form><p id="m" style="margin-top:12px;color:#e5172b"></p></div></main>
+<script type="module">
+import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import{getAuth,signInWithEmailAndPassword}from"https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+var auth=getAuth(initializeApp({apiKey:"AIzaSyDtOGtRr5MjFwQ0igyQPy7DmGYWl1PO-7k",authDomain:"vedank-music.firebaseapp.com",projectId:"vedank-music",appId:"1:838971683062:web:3b94657f165e8ef42e3cd7"}));
+document.getElementById('f').onsubmit=async function(ev){ev.preventDefault();try{await signInWithEmailAndPassword(auth,document.getElementById('e').value,document.getElementById('p').value);location.href='/dashboard.html'}catch(e){document.getElementById('m').textContent='Invalid credentials or not invited'}}
+</script></body></html>
