@@ -1,0 +1,3 @@
+import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";import{getFirestore,doc,getDoc}from"https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+export var db=getFirestore(initializeApp({apiKey:"AIzaSyDtOGtRr5MjFwQ0igyQPy7DmGYWl1PO-7k",authDomain:"vedank-music.firebaseapp.com",projectId:"vedank-music",appId:"1:838971683062:web:3b94657f165e8ef42e3cd7"}));
+export async function loadAll(){var o={artists:[],songs:{}};try{var m=await getDoc(doc(db,"siteContent","main"));if(m.exists()&&m.data().artists)o.artists=m.data().artists;await Promise.all(o.artists.map(async function(a){var s=await getDoc(doc(db,"siteContent","songs_"+a.slug));o.songs[a.slug]=s.exists()?(s.data().songs||[]):undefined}))}catch(e){}return o}
