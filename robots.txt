@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://vedankmusic.vercel.app/sitemap.xml
