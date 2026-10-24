@@ -1,0 +1,60 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Dashboard | Vedank Music</title><meta name="robots" content="noindex"><link rel="icon" href="/monogram.webp"><link rel="stylesheet" href="/style.css"></head><body>
+<nav class="glass"><a href="/"><img src="/wordmark.webp" alt="Vedank Music"></a><div><a href="/join.html">Logout</a></div></nav>
+<main class="wrap" style="padding:30px 0"><h2 style="text-align:center;margin-bottom:20px">Converter Dashboard</h2><div class="grid" style="max-width:700px;margin:auto"><a class="glass card" href="#audio" style="text-align:center;padding:40px"><h3>Convert Audio</h3><p>To WAV with custom settings</p></a><a class="glass card" href="#image" style="text-align:center;padding:40px"><h3>Convert Image</h3><p>To 3000x3000 PNG/JPG</p></a></div>
+<div id="audio" class="glass card" style="margin-top:30px"><h2>Audio Converter</h2><p>Upload audio files (max 150MB each). Always converts to WAV. Metadata always deleted.</p><input type="file" id="af" multiple accept="audio/*"><div id="aset"><label>Channels <select id="ch"><option>Original</option><option>Mono</option><option>Stereo</option></select></label><label>Sample Rate <select id="sr"><option>Original</option><option>16000</option><option>24000</option><option>32000</option><option>44100</option><option>48000</option><option>96000</option></select></label><label>Bit Depth <select id="bd"><option>16</option><option>24</option><option>32</option></select></label><label>Target Size (optional) <input id="ts" type="text" placeholder="e.g. 5MB or leave empty"></label></div><button class="btn" id="ac">Convert Audio</button><div id="aout"></div></div>
+<div id="image" class="glass card" style="margin-top:30px"><h2>Image Converter</h2><p>Upload images (max 40MB each). Always 3000x3000.</p><input type="file" id="if" multiple accept="image/*"><label>Format <select id="fmt"><option>png</option><option>jpg</option></select></label><label>Target Size (optional) <input id="its" type="text" placeholder="e.g. 2MB or leave empty"></label><button class="btn" id="ic">Convert Images</button><div id="iout"></div></div>
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ffmpeg/0.12.10/ffmpeg.min.js"></script>
+<script>
+const { createFFmpeg, fetchFile } = FFmpeg;
+const ffmpeg = createFFmpeg({ log: true });
+async function loadFFmpeg(){ if(!ffmpeg.isLoaded()) await ffmpeg.load(); }
+document.getElementById('ac').onclick = async function(){
+  const files = document.getElementById('af').files;
+  if(!files.length) return alert('Select audio files');
+  await loadFFmpeg();
+  const out = document.getElementById('aout');
+  out.innerHTML = 'Converting...';
+  for(let file of files){
+    if(file.size > 150*1024*1024){ out.innerHTML += '<p>'+file.name+' too large</p>'; continue; }
+    ffmpeg.FS('writeFile', 'input', await fetchFile(file));
+    let cmd = ['-i', 'input', '-map_metadata', '-1'];
+    const ch = document.getElementById('ch').value;
+    if(ch==='Mono') cmd.push('-ac', '1');
+    else if(ch==='Stereo') cmd.push('-ac', '2');
+    const sr = document.getElementById('sr').value;
+    if(sr !== 'Original') cmd.push('-ar', sr);
+    const bd = document.getElementById('bd').value;
+    if(bd==='16') cmd.push('-sample_fmt', 's16');
+    else if(bd==='24') cmd.push('-sample_fmt', 's32');
+    else cmd.push('-sample_fmt', 's32');
+    cmd.push('output.wav');
+    await ffmpeg.run(...cmd);
+    const data = ffmpeg.FS('readFile', 'output.wav');
+    const blob = new Blob([data.buffer], {type: 'audio/wav'});
+    const url = URL.createObjectURL(blob);
+    out.innerHTML += '<p><a class="btn" href="'+url+'" download="'+file.name.replace(/\.[^.]+$/, '')+'.wav">Download '+file.name+' as WAV</a></p>';
+    ffmpeg.FS('unlink', 'input'); ffmpeg.FS('unlink', 'output.wav');
+  }
+};
+document.getElementById('ic').onclick = async function(){
+  const files = document.getElementById('if').files;
+  const fmt = document.getElementById('fmt').value;
+  const out = document.getElementById('iout');
+  out.innerHTML = 'Converting...';
+  for(let file of files){
+    if(file.size > 40*1024*1024){ out.innerHTML += '<p>'+file.name+' too large</p>'; continue; }
+    const img = new Image();
+    img.src = URL.createObjectURL(file);
+    await new Promise(r => img.onload = r);
+    const canvas = document.createElement('canvas');
+    canvas.width = 3000; canvas.height = 3000;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0, 3000, 3000);
+    canvas.toBlob(blob => {
+      const url = URL.createObjectURL(blob);
+      out.innerHTML += '<p><a class="btn" href="'+url+'" download="'+file.name.replace(/\.[^.]+$/, '')+'.'+fmt+'">Download '+file.name+'</a></p>';
+    }, 'image/'+fmt, 0.95);
+  }
+};
+</script></body></html>
