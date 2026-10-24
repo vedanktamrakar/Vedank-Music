@@ -1,8 +1,0 @@
-{
-  "rewrites": [
-    {
-      "source": "/artist/:slug",
-      "destination": "/artist.html"
-    }
-  ]
-}
