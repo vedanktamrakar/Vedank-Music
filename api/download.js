@@ -18,13 +18,11 @@ module.exports = async function handler(req, res) {
   // ==========================================
   if (type === "thumbnail") {
     try {
-      // YouTube का वीडियो ID निकालने का तरीका
       const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=|shorts\/)([^#\&\?]*).*/;
       const match = url.match(regExp);
       
       if (match && match[2].length === 11) {
         const videoId = match[2];
-        // High Quality Thumbnail URL
         const thumbUrl = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
         return res.status(200).json({
           status: "success",
@@ -52,7 +50,7 @@ module.exports = async function handler(req, res) {
     cobaltBody.audioFormat = format || "mp3";
   } else {
     cobaltBody.downloadMode = "auto"; 
-    cobaltBody.videoQuality = quality || "1080"; // डिफ़ॉल्ट 1080p
+    cobaltBody.videoQuality = quality || "1080";
   }
 
   try {
@@ -67,12 +65,12 @@ module.exports = async function handler(req, res) {
 
     const data = await cobaltResponse.json();
 
-    // 🚀 FIX: अगर रिस्पॉन्स में कई फोटो/वीडियो हैं (Instagram Carousel), तो वीडियो को छांट कर निकालें
+    // 🚀 FIX 1: Picker (Carousel) से सिर्फ वीडियो निकालें
     if (data.status === "picker" && Array.isArray(data.picker)) {
       if (type === "video") {
         const videoItem = data.picker.find(item => item.type === "video");
         if (videoItem) {
-          return res.status(cobaltResponse.status).json({
+          return res.status(200).json({
             status: "success",
             url: videoItem.url,
             filename: videoItem.filename || "video.mp4"
@@ -80,9 +78,28 @@ module.exports = async function handler(req, res) {
         } else {
           return res.status(400).json({
             status: "error",
-            text: "इस लिंक में कोई वीडियो नहीं मिला, यह सिर्फ इमेजेस हो सकती हैं।"
+            text: "इस लिंक में कोई वीडियो नहीं है, सिर्फ इमेजेस हैं। कृपया सही वीडियो लिंक डालें।"
           });
         }
+      }
+    }
+
+    // 🚀 FIX 2: अगर सर्वर वीडियो की जगह इमेज भेज रहा है, तो उसे रोकें
+    if (data.status === "redirect" || data.status === "tunnel") {
+      let isImage = false;
+      if (data.filename) {
+        const lower = data.filename.toLowerCase();
+        isImage = lower.endsWith('.jpg') || lower.endsWith('.jpeg') || lower.endsWith('.png') || lower.endsWith('.webp');
+      } else if (data.url) {
+        const cleanUrl = data.url.split('?')[0].toLowerCase();
+        isImage = cleanUrl.endsWith('.jpg') || cleanUrl.endsWith('.jpeg') || cleanUrl.endsWith('.png') || cleanUrl.endsWith('.webp');
+      }
+
+      if (type === "video" && isImage) {
+        return res.status(400).json({
+          status: "error",
+          text: "यह लिंक एक इमेज का है, वीडियो का नहीं। कृपया सही वीडियो लिंक डालें।"
+        });
       }
     }
 
