@@ -1,5 +1,9 @@
+// api/download.js — Vercel Serverless Function (Cobalt v11+ Compatible)
+
+// आपका नया Render URL
+const COBALT_INSTANCE = "https://cobalt-latest-33pl.onrender.com";
+
 module.exports = async function handler(req, res) {
-  // Sirf POST request allow karein
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
     return res.status(405).json({ status: "error", text: "Method not allowed" });
@@ -7,26 +11,24 @@ module.exports = async function handler(req, res) {
 
   const { url, type, format, quality } = req.body || {};
 
-  // Check karein ki URL mila ya nahi
   if (!url || typeof url !== "string") {
     return res.status(400).json({ status: "error", text: "URL is required" });
   }
 
-  // Cobalt API ke liye body taiyar karein
+  // Cobalt v11+ के लिए नया फॉर्मेट
   const cobaltBody = { url };
 
   if (type === "audio") {
-    cobaltBody.isAudioOnly = true;
-    cobaltBody.aFormat = format || "mp3";
+    cobaltBody.downloadMode = "audio";
+    cobaltBody.audioFormat = format || "mp3";
   } else {
-    cobaltBody.isAudioOnly = false;
-    cobaltBody.vCodec = "h264";       // H.264 codec phones ke liye best hai
-    cobaltBody.vQuality = quality || "720";
+    cobaltBody.downloadMode = "auto"; // वीडियो के लिए
+    cobaltBody.videoQuality = quality || "720";
   }
 
   try {
-    // Cobalt API ko call karein
-    const cobaltResponse = await fetch("https://api.cobalt.tools/api/json", {
+    // Render सर्वर को कॉल करें
+    const cobaltResponse = await fetch(COBALT_INSTANCE, {
       method: "POST",
       headers: {
         Accept: "application/json",
@@ -36,15 +38,13 @@ module.exports = async function handler(req, res) {
     });
 
     const data = await cobaltResponse.json();
-    
-    // Response wapas frontend ko bhej dein
     return res.status(cobaltResponse.status).json(data);
     
   } catch (err) {
-    console.error("Cobalt API error:", err);
+    console.error("Render API error:", err);
     return res.status(500).json({
       status: "error",
-      text: "Download service se connect nahi ho paya. Thodi der baad try karein.",
+      text: "सर्वर जाग रहा है या व्यस्त है। कृपया 1 मिनट बाद फिर से प्रयास करें।",
     });
   }
 };
