@@ -6,9 +6,7 @@
   <title>Media Downloader</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
-
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
-
     body {
       min-height: 100vh; display: flex; align-items: center; justify-content: center;
       background-color: #f4f7f6;
@@ -16,23 +14,18 @@
                         radial-gradient(circle at bottom left, rgba(220, 38, 38, 0.05), transparent 400px);
       padding: 20px;
     }
-
     .card {
       background: #ffffff; width: 100%; max-width: 580px; border-radius: 20px;
       padding: 35px 30px; box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08);
       border-top: 6px solid #eab308; position: relative; overflow: hidden;
     }
-
     .card::before {
       content: ""; position: absolute; top: -50px; right: -50px;
       width: 150px; height: 150px; background: rgba(37, 99, 235, 0.05); border-radius: 50%; z-index: 0;
     }
-
     .card > * { position: relative; z-index: 1; }
-
     .card h1 { font-size: 1.8rem; font-weight: 700; color: #1e3a8a; margin-bottom: 8px; display: flex; align-items: center; gap: 10px; }
     .card h1 span { font-size: 2rem; }
-
     .subtitle { font-size: 0.9rem; color: #64748b; margin-bottom: 25px; line-height: 1.5; border-left: 4px solid #dc2626; padding-left: 12px; }
 
     .input-group { position: relative; margin-bottom: 22px; }
@@ -49,7 +42,6 @@
     }
     .platform-badge.visible { opacity: 1; }
 
-    /* Toggle Buttons (Video, Audio, Thumbnail) */
     .toggle-group { display: flex; gap: 10px; margin-bottom: 22px; }
     .toggle-btn {
       flex: 1; padding: 14px 5px; border: 2px solid #e2e8f0; border-radius: 12px;
@@ -57,23 +49,11 @@
       cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center;
       justify-content: center; gap: 5px; user-select: none;
     }
-
-    /* Video Active (Blue) */
-    .toggle-btn[data-type="video"].active {
-      border-color: #2563eb; background: #eff6ff; color: #1d4ed8; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
-    }
-    /* Audio Active (Red) */
-    .toggle-btn[data-type="audio"].active {
-      border-color: #dc2626; background: #fef2f2; color: #b91c1c; box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15);
-    }
-    /* Thumbnail Active (Gold/Yellow) */
-    .toggle-btn[data-type="thumbnail"].active {
-      border-color: #eab308; background: #fefce8; color: #a16207; box-shadow: 0 0 0 3px rgba(234, 179, 8, 0.2);
-    }
-
+    .toggle-btn[data-type="video"].active { border-color: #2563eb; background: #eff6ff; color: #1d4ed8; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15); }
+    .toggle-btn[data-type="audio"].active { border-color: #dc2626; background: #fef2f2; color: #b91c1c; box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15); }
+    .toggle-btn[data-type="thumbnail"].active { border-color: #eab308; background: #fefce8; color: #a16207; box-shadow: 0 0 0 3px rgba(234, 179, 8, 0.2); }
     .toggle-btn:hover:not(.active) { border-color: #cbd5e1; background: #f8fafc; }
 
-    /* Options Row */
     .options-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
     .option-box { background: #f8fafc; border-radius: 12px; padding: 14px 16px; border: 1.5px solid #e2e8f0; transition: border-color 0.3s; }
     .option-box:focus-within { border-color: #eab308; }
@@ -84,7 +64,6 @@
     }
     .option-box select:focus { border-color: #eab308; }
 
-    /* Download Button */
     .btn-download {
       width: 100%; padding: 16px; border: none; border-radius: 12px;
       background: linear-gradient(135deg, #2563eb 0%, #dc2626 100%);
@@ -92,14 +71,12 @@
       transition: all 0.3s ease; display: flex; align-items: center; justify-content: center;
       gap: 10px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
     }
-
     .btn-download:hover:not(:disabled) {
       background: linear-gradient(135deg, #1d4ed8 0%, #b91c1c 100%);
       transform: translateY(-2px); box-shadow: 0 8px 25px rgba(220, 38, 38, 0.4);
     }
     .btn-download:disabled { opacity: 0.6; cursor: not-allowed; box-shadow: none; }
 
-    /* Spinner */
     .spinner {
       width: 22px; height: 22px; border: 3px solid rgba(255, 255, 255, 0.3);
       border-top-color: #ffffff; border-radius: 50%; animation: spin 0.8s linear infinite; display: none;
@@ -108,7 +85,6 @@
     .btn-download.loading .btn-text { display: none; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* Status */
     .status {
       font-size: 0.9rem; text-align: center; min-height: 40px; padding: 12px 16px;
       border-radius: 10px; transition: all 0.3s ease; word-break: break-word; font-weight: 500;
@@ -136,20 +112,17 @@
       to download high-quality video, audio, or thumbnail.
     </p>
 
-    <!-- URL Input -->
     <div class="input-group">
       <input type="url" id="mediaUrl" placeholder="https://www.youtube.com/watch?v=..." autocomplete="off" />
       <span class="platform-badge" id="platformBadge"></span>
     </div>
 
-    <!-- Toggle Buttons -->
     <div class="toggle-group">
       <div class="toggle-btn active" data-type="video" id="toggleVideo">🎬 Video</div>
       <div class="toggle-btn" data-type="audio" id="toggleAudio">🎵 Audio</div>
       <div class="toggle-btn" data-type="thumbnail" id="toggleThumbnail">🖼️ Thumbnail</div>
     </div>
 
-    <!-- Format & Quality (Thumbnail के समय छिप जाएगा) -->
     <div class="options-row" id="optionsRow">
       <div class="option-box">
         <label for="formatSelect">File Format</label>
@@ -161,13 +134,11 @@
       </div>
     </div>
 
-    <!-- Download Button -->
     <button class="btn-download" id="downloadBtn">
       <span class="spinner"></span>
       <span class="btn-text">⬇️ Download Now</span>
     </button>
 
-    <!-- Status Message -->
     <div class="status" id="statusMsg"></div>
   </div>
 
@@ -225,7 +196,7 @@
         toggleThumbnail.classList.toggle("active", type === "thumbnail");
 
         if (type === "thumbnail") {
-          optionsRow.style.display = "none"; // Hide dropdowns for thumbnail
+          optionsRow.style.display = "none"; 
         } else {
           optionsRow.style.display = "grid";
           refreshFormats();
@@ -266,15 +237,47 @@
         statusMsg.className = "status";
       }
 
-      function triggerDownload(url, filename) {
-        const a = document.createElement("a");
-        a.href = url;
-        if (filename) a.download = filename;
-        a.target = "_blank";
-        a.rel = "noopener noreferrer";
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
+      // 🚀 FIXED DOWNLOAD FUNCTION (Blob method to force download & check file type)
+      async function triggerDownload(url, filename) {
+        try {
+          showStatus("⏳ Preparing your file for download...", "info");
+          const response = await fetch(url);
+          if (!response.ok) throw new Error("Network error");
+          const blob = await response.blob();
+          
+          // अगर वीडियो माँगा है लेकिन इमेज आई है
+          if (currentType === "video" && blob.type.startsWith("image/")) {
+            throw new Error("URL_IS_IMAGE");
+          }
+
+          const blobUrl = window.URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = blobUrl;
+          a.download = filename || (blob.type.includes("video") ? "video.mp4" : "download");
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          window.URL.revokeObjectURL(blobUrl);
+          
+          showStatus("✅ Download started successfully!", "success");
+          
+        } catch (err) {
+          // अगर CORS की वजह से Blob फेल हो जाए, तो सीधा लिंक खोलें
+          if (err.message === "URL_IS_IMAGE") {
+            showStatus("❌ The provided link is an image, not a video. Please provide a valid video link.", "error");
+            return;
+          }
+          
+          const a = document.createElement("a");
+          a.href = url;
+          if (filename) a.download = filename;
+          a.target = "_blank";
+          a.rel = "noopener noreferrer";
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          showStatus("✅ Opening your file…", "success");
+        }
       }
 
       async function handleDownload() {
@@ -321,8 +324,7 @@
 
           if (data.status === "tunnel" || data.status === "redirect" || data.status === "success") {
             if (data.url) {
-              showStatus("✅ Download ready! Opening your file…", "success");
-              triggerDownload(data.url, data.filename || null);
+              await triggerDownload(data.url, data.filename || null);
             } else {
               showStatus("⚠️ No download URL returned.", "error");
             }
