@@ -114,10 +114,18 @@ input:focus,select:focus{border-color:var(--acc1)}
   function done(tab,href,kind){
     var P=$("player"),el;
     if(kind==="image"){el=document.createElement("img");el.src=href;el.style.cssText="width:100%;border-radius:12px"}
-    else{el=document.createElement(kind==="audio"?"audio":"video");el.src=href;el.controls=true;el.preload="metadata";el.setAttribute("playsinline","")}
+    else{
+      el=document.createElement(kind==="audio"?"audio":"video");el.controls=true;el.preload="metadata";el.setAttribute("playsinline","");
+      var bad=function(t){clearTimeout(tm);P.style.display="none";P.innerHTML="";show(t)};
+      var tm=setTimeout(function(){if(!el.readyState)show('Still loading… If the player stays at 0:00, <a href="'+esc(href)+'" target="_blank" rel="noopener">open it in a new tab</a>.')},12000);
+      el.onloadedmetadata=function(){clearTimeout(tm);if(kind==="video"&&!el.videoWidth)bad("The server sent audio or a picture, not a video. Instagram often does this to free servers. Try another public link.")};
+      el.onerror=function(){bad("This file could not be played as a video. The platform probably blocked the download server and sent a picture instead. Try another public link.")};
+      el.src=href;
+    }
     P.innerHTML="";P.appendChild(el);P.style.display="block";
     show('Ready! On the player, tap the three dots (⋮) and choose <b>Download</b>. You can also change playback speed there. Not working? <a href="'+esc(href)+'" target="_blank" rel="noopener">Open in a new tab</a>.');
   }
+  function probe(u){return fetch(u,{method:"HEAD"}).then(function(r){return (r.headers.get("content-type")||"").toLowerCase()}).catch(function(){return ""})}
   function end(){go.disabled=false;go.textContent="Download";bar.style.display="none"}
 
   go.onclick=function(){
@@ -157,7 +165,10 @@ input:focus,select:focus{border-color:var(--acc1)}
         if(type==="video"&&(isImg(d.filename)||isImg(d.url)))return fail("This link points to an image, not a video.");
         href=d.url;
       }else return fail("Unexpected response. Please try again later.");
-      done(tab,href,type==="audio"?"audio":"video");end();
+      return probe(href).then(function(ct){
+        if(ct.indexOf("image/")===0)return fail("The server sent a picture instead of a video. This is a limit of the free download server, not your link. Try another public link.");
+        done(tab,href,type==="audio"?"audio":"video");end();
+      });
     }).catch(function(){
       fail("Could not reach the download server. Please try again in a minute. (In Claude preview this is expected.)");
     });
