@@ -1,11 +1,9 @@
 // api/download.js — Vercel Serverless Function (Cobalt v11+ Compatible)
 
-// आपका नया Render URL
 const COBALT_INSTANCE = "https://cobalt-latest-33pl.onrender.com";
 
 module.exports = async function handler(req, res) {
   if (req.method !== "POST") {
-    res.setHeader("Allow", "POST");
     return res.status(405).json({ status: "error", text: "Method not allowed" });
   }
 
@@ -15,19 +13,49 @@ module.exports = async function handler(req, res) {
     return res.status(400).json({ status: "error", text: "URL is required" });
   }
 
-  // Cobalt v11+ के लिए नया फॉर्मेट
+  // ==========================================
+  // 1. THUMBNAIL DOWNLOAD HANDLER (New Feature)
+  // ==========================================
+  if (type === "thumbnail") {
+    try {
+      // YouTube का वीडियो ID निकालने का तरीका
+      const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=|shorts\/)([^#\&\?]*).*/;
+      const match = url.match(regExp);
+      
+      if (match && match[2].length === 11) {
+        const videoId = match[2];
+        // High Quality Thumbnail URL
+        const thumbUrl = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+        return res.status(200).json({
+          status: "success",
+          url: thumbUrl,
+          filename: `thumbnail_${videoId}.jpg`
+        });
+      } else {
+        return res.status(400).json({
+          status: "error",
+          text: "फिलहाल थंबनेल डाउनलोड सिर्फ YouTube लिंक के लिए उपलब्ध है।"
+        });
+      }
+    } catch (err) {
+      return res.status(500).json({ status: "error", text: "Thumbnail process failed." });
+    }
+  }
+
+  // ==========================================
+  // 2. AUDIO / VIDEO DOWNLOAD HANDLER
+  // ==========================================
   const cobaltBody = { url };
 
   if (type === "audio") {
     cobaltBody.downloadMode = "audio";
     cobaltBody.audioFormat = format || "mp3";
   } else {
-    cobaltBody.downloadMode = "auto"; // वीडियो के लिए
-    cobaltBody.videoQuality = quality || "720";
+    cobaltBody.downloadMode = "auto"; 
+    cobaltBody.videoQuality = quality || "1080"; // डिफ़ॉल्ट 1080p
   }
 
   try {
-    // Render सर्वर को कॉल करें
     const cobaltResponse = await fetch(COBALT_INSTANCE, {
       method: "POST",
       headers: {
@@ -38,6 +66,26 @@ module.exports = async function handler(req, res) {
     });
 
     const data = await cobaltResponse.json();
+
+    // 🚀 FIX: अगर रिस्पॉन्स में कई फोटो/वीडियो हैं (Instagram Carousel), तो वीडियो को छांट कर निकालें
+    if (data.status === "picker" && Array.isArray(data.picker)) {
+      if (type === "video") {
+        const videoItem = data.picker.find(item => item.type === "video");
+        if (videoItem) {
+          return res.status(cobaltResponse.status).json({
+            status: "success",
+            url: videoItem.url,
+            filename: videoItem.filename || "video.mp4"
+          });
+        } else {
+          return res.status(400).json({
+            status: "error",
+            text: "इस लिंक में कोई वीडियो नहीं मिला, यह सिर्फ इमेजेस हो सकती हैं।"
+          });
+        }
+      }
+    }
+
     return res.status(cobaltResponse.status).json(data);
     
   } catch (err) {
