@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ReelSnap – Reels, Shorts aur Video Downloader</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg1:#eef0ff;--bg2:#fbeaff;--card:rgba(255,255,255,.72);--text:#1b1740;--muted:#5d5a86;--line:rgba(80,70,160,.22);--acc1:#6c4bff;--acc2:#ff4b9a;--field:rgba(255,255,255,.9)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg1:#0c0a24;--bg2:#220f3d;--card:rgba(24,20,56,.66);--text:#f1efff;--muted:#a9a4d6;--line:rgba(160,150,255,.25);--acc1:#8a6dff;--acc2:#ff5fa8;--field:rgba(10,8,34,.7)}}
+:root[data-theme="dark"]{--bg1:#0c0a24;--bg2:#220f3d;--card:rgba(24,20,56,.66);--text:#f1efff;--muted:#a9a4d6;--line:rgba(160,150,255,.25);--acc1:#8a6dff;--acc2:#ff5fa8;--field:rgba(10,8,34,.7)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--text);background:linear-gradient(140deg,var(--bg1),var(--bg2));overflow-x:hidden}
+#bg{position:fixed;inset:0;width:100%;height:100%;z-index:0}
+main{position:relative;z-index:1;max-width:560px;margin:0 auto;padding:28px 16px 40px}
+h1{font-size:2.1rem;margin:8px 0 4px;text-align:center;background:linear-gradient(90deg,var(--acc1),var(--acc2));-webkit-background-clip:text;background-clip:text;color:transparent;letter-spacing:-.5px}
+.sub{text-align:center;color:var(--muted);margin:0 0 22px;font-size:.95rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:18px;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 20px 50px rgba(60,40,160,.25)}
+.tabs{display:flex;gap:6px;background:var(--field);border:1px solid var(--line);border-radius:14px;padding:4px;margin-bottom:14px}
+.tab{flex:1;border:0;background:transparent;color:var(--muted);padding:10px 4px;border-radius:10px;font-weight:600;font-size:.9rem;cursor:pointer}
+.tab.on{background:linear-gradient(90deg,var(--acc1),var(--acc2));color:#fff}
+.row{display:flex;gap:8px}
+input[type=text],select{width:100%;padding:14px;border-radius:14px;border:1px solid var(--line);background:var(--field);color:var(--text);font-size:1rem;outline:none}
+input:focus,select:focus{border-color:var(--acc1)}
+.ghost{border:1px solid var(--line);background:var(--field);color:var(--text);border-radius:14px;padding:0 14px;font-weight:600;cursor:pointer;white-space:nowrap}
+.opts{display:flex;gap:8px;margin:10px 0 14px}
+.go{width:100%;border:0;border-radius:14px;padding:15px;font-size:1.05rem;font-weight:700;color:#fff;cursor:pointer;background:linear-gradient(90deg,var(--acc1),var(--acc2));box-shadow:0 10px 24px rgba(108,75,255,.4)}
+.go:disabled{opacity:.6}
+.bar{height:6px;border-radius:6px;background:var(--line);margin-top:14px;overflow:hidden;display:none}
+.bar i{display:block;height:100%;width:40%;background:linear-gradient(90deg,var(--acc1),var(--acc2));animation:mv 1s infinite alternate ease-in-out}
+@keyframes mv{from{margin-left:0}to{margin-left:60%}}
+#msg{margin-top:14px;padding:12px;border-radius:12px;font-size:.92rem;line-height:1.5;display:none;border:1px solid var(--line);background:var(--field)}
+#msg a{color:var(--acc1);font-weight:700}
+.chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:18px}
+.chips span{font-size:.8rem;color:var(--muted);border:1px solid var(--line);border-radius:99px;padding:5px 12px;background:var(--card)}
+.note{margin-top:16px;text-align:center;color:var(--muted);font-size:.78rem;line-height:1.5}
+</style>
+</head>
+<body>
+<canvas id="bg"></canvas>
+<main>
+  <h1>ReelSnap</h1>
+  <p class="sub">Instagram Reels, YouTube Shorts aur Video – ek link, ek tap</p>
+  <div class="card">
+    <div class="tabs" id="tabs">
+      <button class="tab on" data-t="video">Video</button>
+      <button class="tab" data-t="audio">Audio</button>
+      <button class="tab" data-t="thumbnail">Thumbnail</button>
+    </div>
+    <div class="row">
+      <input type="text" id="url" placeholder="Reel ya Shorts ka link paste karo" inputmode="url" autocomplete="off">
+      <button class="ghost" id="paste">Paste</button>
+    </div>
+    <div class="opts">
+      <select id="quality"><option value="1080">1080p</option><option value="720">720p</option><option value="480">480p</option><option value="360">360p</option><option value="max">Max</option></select>
+      <select id="format"><option value="mp4">MP4</option><option value="webm">WebM</option></select>
+    </div>
+    <button class="go" id="go">Download karo</button>
+    <div class="bar" id="bar"><i></i></div>
+    <div id="msg"></div>
+  </div>
+  <div class="chips"><span>Instagram Reels</span><span>YouTube Shorts</span><span>YouTube Video</span><span>Facebook</span><span>Snapchat</span></div>
+  <p class="note">Sirf public links. Wahi content download karo jo aapka ho ya jiski permission ho.</p>
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+  var type="video",$=function(i){return document.getElementById(i)};
+  var q=$("quality"),f=$("format"),msg=$("msg"),bar=$("bar"),go=$("go");
+  function opts(){
+    var a=type==="audio";
+    q.style.display=type==="thumbnail"?"none":(a?"none":"");
+    f.innerHTML=a?'<option value="mp3">MP3</option><option value="opus">Opus</option><option value="wav">WAV</option>':(type==="thumbnail"?'<option value="jpg">JPG</option>':'<option value="mp4">MP4</option><option value="webm">WebM</option>');
+    f.style.display=type==="thumbnail"?"none":"";
+  }
+  $("tabs").onclick=function(e){var t=e.target.getAttribute("data-t");if(!t)return;type=t;
+    [].forEach.call(document.querySelectorAll(".tab"),function(b){b.classList.toggle("on",b===e.target)});opts();};
+  $("paste").onclick=function(){
+    if(navigator.clipboard&&navigator.clipboard.readText){navigator.clipboard.readText().then(function(t){$("url").value=t}).catch(function(){$("url").focus()});}
+    else $("url").focus();
+  };
+  function show(h){msg.innerHTML=h;msg.style.display="block"}
+  go.onclick=function(){
+    var u=$("url").value.trim();
+    if(!u){show("Pehle link paste karo.");return}
+    go.disabled=true;bar.style.display="block";msg.style.display="none";
+    fetch("/api/download",{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({url:u,type:type,format:f.value,quality:q.value})})
+    .then(function(r){return r.text().then(function(t){var d;try{d=JSON.parse(t)}catch(e){d=null}return {ok:r.ok,d:d}})})
+    .then(function(x){
+      if(!x.d){throw new Error("nobackend")}
+      if(x.ok&&x.d.url){show('Taiyaar hai! <a href="'+x.d.url+'" target="_blank" rel="noopener" download>File download karo</a>');}
+      else show(x.d.text||"Kuch galat hua, dobara try karo.");
+    })
+    .catch(function(){
+      show("Preview mode: yahan sirf design dikh raha hai. Asli download tab chalega jab ye page Vercel par <b>/api/download</b> ke saath live hoga.");
+    })
+    .then(function(){go.disabled=false;bar.style.display="none"});
+  };
+  opts();
+
+  /* 3D background */
+  try{
+    var c=$("bg"),r=new THREE.WebGLRenderer({canvas:c,alpha:true,antialias:true});
+    r.setPixelRatio(Math.min(devicePixelRatio,2));
+    var s=new THREE.Scene(),cam=new THREE.PerspectiveCamera(55,1,.1,100);cam.position.z=9;
+    s.add(new THREE.AmbientLight(0xffffff,.6));
+    var l=new THREE.PointLight(0xff5fa8,1.4,40);l.position.set(5,5,6);s.add(l);
+    var l2=new THREE.PointLight(0x8a6dff,1.4,40);l2.position.set(-6,-3,5);s.add(l2);
+    var m1=new THREE.Mesh(new THREE.TorusKnotGeometry(1.5,.45,140,18),new THREE.MeshStandardMaterial({color:0x8a6dff,metalness:.6,roughness:.25}));
+    m1.position.set(2.6,1.2,-1);s.add(m1);
+    var m2=new THREE.Mesh(new THREE.IcosahedronGeometry(1.1,0),new THREE.MeshStandardMaterial({color:0xff5fa8,metalness:.5,roughness:.3,flatShading:true}));
+    m2.position.set(-3.2,-1.6,0);s.add(m2);
+    var m3=new THREE.Mesh(new THREE.OctahedronGeometry(.7,0),new THREE.MeshBasicMaterial({color:0x6ee7ff,wireframe:true}));
+    m3.position.set(-2.4,2.6,-2);s.add(m3);
+    var m4=new THREE.Mesh(new THREE.TorusGeometry(.8,.22,16,48),new THREE.MeshStandardMaterial({color:0xffc857,metalness:.7,roughness:.25}));
+    m4.position.set(3.4,-2.6,0);s.add(m4);
+    var mx=0,my=0;
+    addEventListener("pointermove",function(e){mx=e.clientX/innerWidth-.5;my=e.clientY/innerHeight-.5});
+    function rs(){r.setSize(innerWidth,innerHeight,false);cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix()}
+    rs();addEventListener("resize",rs);
+    (function a(t){requestAnimationFrame(a);var k=t*.001;
+      m1.rotation.x=k*.4;m1.rotation.y=k*.6;m2.rotation.x=-k*.5;m2.rotation.y=k*.4;m3.rotation.y=k;m4.rotation.x=k*.7;m4.rotation.z=k*.3;
+      m1.position.y=1.2+Math.sin(k)*.4;m2.position.y=-1.6+Math.cos(k*.8)*.4;
+      cam.position.x+=(mx*2-cam.position.x)*.05;cam.position.y+=(-my*2-cam.position.y)*.05;cam.lookAt(0,0,0);
+      r.render(s,cam)})(0);
+  }catch(e){}
+})();
+</script>
+</body>
+</html>
