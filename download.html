@@ -5,91 +5,362 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Media Downloader</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
+    /* ================= GOOGLE FONTS ================= */
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+
+    /* ================= GLOBAL STYLES ================= */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', 'Segoe UI', sans-serif;
+    }
+
     body {
-      min-height: 100vh; display: flex; align-items: center; justify-content: center;
-      background: linear-gradient(145deg, #0f172a 0%, #1e293b 100%); padding: 20px;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #f4f7f6; /* Light white/grey background */
+      background-image: radial-gradient(circle at top right, rgba(37, 99, 235, 0.05), transparent 400px),
+                        radial-gradient(circle at bottom left, rgba(220, 38, 38, 0.05), transparent 400px);
+      padding: 20px;
     }
+
+    /* ================= CARD DESIGN ================= */
     .card {
-      background: #fff; width: 100%; max-width: 560px; border-radius: 24px;
-      padding: 32px 28px 28px; box-shadow: 0 25px 60px rgba(0,0,0,0.5);
+      background: #ffffff;
+      width: 100%;
+      max-width: 560px;
+      border-radius: 20px;
+      padding: 35px 30px;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08), 0 5px 15px rgba(0, 0, 0, 0.03);
+      border-top: 6px solid #eab308; /* Gold Top Border */
+      position: relative;
+      overflow: hidden;
     }
-    .card h1 { font-size: 1.6rem; color: #0f172a; margin-bottom: 4px; display: flex; align-items: center; gap: 10px; }
-    .card h1 span { font-size: 1.9rem; }
-    .subtitle { font-size: 0.9rem; color: #64748b; margin-bottom: 24px; border-left: 3px solid #3b82f6; padding-left: 12px; }
-    .input-group { position: relative; margin-bottom: 20px; }
+
+    /* Decorative background elements */
+    .card::before {
+      content: "";
+      position: absolute;
+      top: -50px;
+      right: -50px;
+      width: 150px;
+      height: 150px;
+      background: rgba(37, 99, 235, 0.05); /* Soft Blue */
+      border-radius: 50%;
+      z-index: 0;
+    }
+
+    .card > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ================= HEADINGS ================= */
+    .card h1 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #1e3a8a; /* Deep Blue */
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .card h1 span {
+      font-size: 2rem;
+    }
+
+    .subtitle {
+      font-size: 0.9rem;
+      color: #64748b;
+      margin-bottom: 25px;
+      line-height: 1.5;
+      border-left: 4px solid #dc2626; /* Red Accent Line */
+      padding-left: 12px;
+    }
+
+    /* ================= URL INPUT ================= */
+    .input-group {
+      position: relative;
+      margin-bottom: 22px;
+    }
+
     .input-group input {
-      width: 100%; padding: 15px 18px; font-size: 1rem; border: 2px solid #e2e8f0;
-      border-radius: 14px; outline: none; transition: 0.2s; background: #f8fafc; color: #0f172a;
+      width: 100%;
+      padding: 16px 18px;
+      font-size: 1rem;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      outline: none;
+      transition: all 0.3s ease;
+      background: #f8fafc;
+      color: #0f172a;
+      font-weight: 500;
     }
-    .input-group input:focus { border-color: #3b82f6; box-shadow: 0 0 0 4px rgba(59,130,246,0.15); background: #fff; }
+
+    .input-group input:focus {
+      border-color: #2563eb; /* Blue Focus */
+      box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15);
+      background: #ffffff;
+    }
+
     .platform-badge {
-      position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
-      font-size: 0.75rem; font-weight: 600; padding: 4px 10px; border-radius: 20px;
-      background: #e2e8f0; color: #475569; opacity: 0; transition: 0.2s;
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 5px 12px;
+      border-radius: 20px;
+      background: #f1f5f9;
+      color: #475569;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
     }
-    .platform-badge.visible { opacity: 1; }
-    .toggle-group { display: flex; gap: 10px; margin-bottom: 20px; }
+
+    .platform-badge.visible {
+      opacity: 1;
+    }
+
+    /* ================= TOGGLE (VIDEO/AUDIO) ================= */
+    .toggle-group {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 22px;
+    }
+
     .toggle-btn {
-      flex: 1; padding: 13px 10px; border: 2px solid #e2e8f0; border-radius: 14px;
-      background: #f8fafc; font-size: 0.95rem; font-weight: 600; color: #64748b;
-      cursor: pointer; transition: 0.2s; display: flex; align-items: center;
-      justify-content: center; gap: 8px; user-select: none;
+      flex: 1;
+      padding: 14px 10px;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      background: #ffffff;
+      font-size: 1rem;
+      font-weight: 600;
+      color: #64748b;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      user-select: none;
     }
-    .toggle-btn.active { border-color: #3b82f6; background: #eff6ff; color: #1d4ed8; box-shadow: 0 0 0 3px rgba(59,130,246,0.15); }
-    .toggle-btn:hover:not(.active) { border-color: #cbd5e1; background: #f1f5f9; }
-    .options-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 20px; }
-    .option-box { background: #f8fafc; border-radius: 14px; padding: 14px 16px; border: 2px solid #e2e8f0; }
-    .option-box label { display: block; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: #64748b; margin-bottom: 8px; }
+
+    /* Video Active (Blue) */
+    .toggle-btn[data-type="video"].active {
+      border-color: #2563eb;
+      background: #eff6ff;
+      color: #1d4ed8;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+
+    /* Audio Active (Red) */
+    .toggle-btn[data-type="audio"].active {
+      border-color: #dc2626;
+      background: #fef2f2;
+      color: #b91c1c;
+      box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15);
+    }
+
+    .toggle-btn:hover:not(.active) {
+      border-color: #cbd5e1;
+      background: #f8fafc;
+    }
+
+    /* ================= OPTIONS ROW ================= */
+    .options-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      margin-bottom: 25px;
+    }
+
+    .option-box {
+      background: #f8fafc;
+      border-radius: 12px;
+      padding: 14px 16px;
+      border: 1.5px solid #e2e8f0;
+      transition: border-color 0.3s;
+    }
+
+    .option-box:focus-within {
+      border-color: #eab308; /* Gold Focus */
+    }
+
+    .option-box label {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #475569;
+      margin-bottom: 8px;
+    }
+
     .option-box select {
-      width: 100%; padding: 10px 12px; font-size: 0.95rem; border: 1.5px solid #cbd5e1;
-      border-radius: 10px; background: #fff; color: #0f172a; outline: none; cursor: pointer;
+      width: 100%;
+      padding: 10px 12px;
+      font-size: 0.95rem;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 8px;
+      background: #ffffff;
+      color: #0f172a;
+      outline: none;
+      cursor: pointer;
+      font-weight: 500;
+      transition: 0.2s;
     }
-    .option-box select:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .option-box select:focus {
+      border-color: #eab308;
+    }
+
+    .option-box select:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      background: #f1f5f9;
+    }
+
+    /* ================= DOWNLOAD BUTTON ================= */
     .btn-download {
-      width: 100%; padding: 16px; border: none; border-radius: 14px;
-      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: #fff;
-      font-size: 1.05rem; font-weight: 700; cursor: pointer; transition: 0.2s;
-      display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 16px;
+      width: 100%;
+      padding: 16px;
+      border: none;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #2563eb 0%, #dc2626 100%); /* Blue to Red Gradient */
+      color: #ffffff;
+      font-size: 1.1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
     }
-    .btn-download:hover:not(:disabled) { background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); transform: translateY(-2px); box-shadow: 0 12px 25px rgba(37,99,235,0.4); }
-    .btn-download:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .btn-download:hover:not(:disabled) {
+      background: linear-gradient(135deg, #1d4ed8 0%, #b91c1c 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(220, 38, 38, 0.4);
+    }
+
+    .btn-download:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    .btn-download:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    /* Spinner */
     .spinner {
-      width: 20px; height: 20px; border: 3px solid rgba(255,255,255,0.3);
-      border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; display: none;
+      width: 22px;
+      height: 22px;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-top-color: #ffffff;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      display: none;
     }
-    .btn-download.loading .spinner { display: block; }
-    .btn-download.loading .btn-text { display: none; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .status { font-size: 0.9rem; text-align: center; min-height: 24px; padding: 10px 14px; border-radius: 12px; transition: 0.3s; word-break: break-word; }
-    .status.success { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
-    .status.error { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
-    .status.info { background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; }
+
+    .btn-download.loading .spinner {
+      display: block;
+    }
+
+    .btn-download.loading .btn-text {
+      display: none;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* ================= STATUS MESSAGE ================= */
+    .status {
+      font-size: 0.9rem;
+      text-align: center;
+      min-height: 40px;
+      padding: 12px 16px;
+      border-radius: 10px;
+      transition: all 0.3s ease;
+      word-break: break-word;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .status.success {
+      background: #f0fdf4;
+      color: #166534;
+      border: 1px solid #bbf7d0;
+    }
+
+    .status.error {
+      background: #fef2f2;
+      color: #991b1b;
+      border: 1px solid #fecaca;
+    }
+
+    .status.info {
+      background: #eff6ff;
+      color: #1e40af;
+      border: 1px solid #bfdbfe;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+
+    /* ================= RESPONSIVE ================= */
     @media (max-width: 480px) {
-      .card { padding: 24px 18px; }
-      .options-row { grid-template-columns: 1fr; }
-      .card h1 { font-size: 1.3rem; }
+      .card {
+        padding: 25px 20px;
+      }
+      .options-row {
+        grid-template-columns: 1fr;
+      }
+      .card h1 {
+        font-size: 1.5rem;
+      }
     }
   </style>
 </head>
 <body>
+
   <div class="card">
     <h1><span>⬇️</span> Media Downloader</h1>
     <p class="subtitle">
-      Paste a link from <strong>YouTube, Instagram, Facebook, or Snapchat</strong>
-      and download it as video or audio in your preferred format and quality.
+      Paste a link from <strong>YouTube, Instagram, Facebook, or Snapchat</strong> 
+      to download high-quality video or audio.
     </p>
 
+    <!-- URL Input -->
     <div class="input-group">
       <input type="url" id="mediaUrl" placeholder="https://www.youtube.com/watch?v=..." autocomplete="off" />
       <span class="platform-badge" id="platformBadge"></span>
     </div>
 
+    <!-- Video / Audio Toggle -->
     <div class="toggle-group">
       <div class="toggle-btn active" data-type="video" id="toggleVideo">🎬 Video</div>
       <div class="toggle-btn" data-type="audio" id="toggleAudio">🎵 Audio</div>
     </div>
 
+    <!-- Format & Quality -->
     <div class="options-row">
       <div class="option-box">
         <label for="formatSelect">File Format</label>
@@ -101,11 +372,13 @@
       </div>
     </div>
 
+    <!-- Download Button -->
     <button class="btn-download" id="downloadBtn">
       <span class="spinner"></span>
-      <span class="btn-text">⬇️ Download</span>
+      <span class="btn-text">⬇️ Download Now</span>
     </button>
 
+    <!-- Status Message -->
     <div class="status" id="statusMsg"></div>
   </div>
 
@@ -113,6 +386,7 @@
     (function () {
       "use strict";
 
+      // DOM Elements
       const mediaUrlInput = document.getElementById("mediaUrl");
       const platformBadge = document.getElementById("platformBadge");
       const toggleVideo   = document.getElementById("toggleVideo");
@@ -124,6 +398,7 @@
 
       let currentType = "video";
 
+      // Data for Dropdowns
       const FORMATS = {
         video: [
           { value: "mp4",  label: "MP4 (H.264)" },
@@ -153,6 +428,7 @@
         audio: [{ value: "best", label: "Best Available" }],
       };
 
+      // Populate Dropdowns
       function populateSelect(el, opts) {
         el.innerHTML = "";
         opts.forEach((o) => {
@@ -169,6 +445,7 @@
         qualitySelect.disabled = currentType === "audio";
       }
 
+      // Toggle Handlers
       function setType(type) {
         currentType = type;
         toggleVideo.classList.toggle("active", type === "video");
@@ -180,6 +457,7 @@
       toggleAudio.addEventListener("click", () => setType("audio"));
       setType("video");
 
+      // Platform Detector
       function detectPlatform(url) {
         if (!url) return null;
         const l = url.toLowerCase();
@@ -200,6 +478,7 @@
         }
       });
 
+      // Status Helpers
       function showStatus(msg, type = "info") {
         statusMsg.textContent = msg;
         statusMsg.className = "status " + type;
@@ -209,6 +488,7 @@
         statusMsg.className = "status";
       }
 
+      // Trigger File Download
       function triggerDownload(url, filename) {
         const a = document.createElement("a");
         a.href = url;
@@ -220,6 +500,7 @@
         document.body.removeChild(a);
       }
 
+      // MAIN DOWNLOAD FUNCTION (Cobalt v11 + Render Support)
       async function handleDownload() {
         clearStatus();
         const url = mediaUrlInput.value.trim();
@@ -230,80 +511,82 @@
           return;
         }
         try { new URL(url); }
-        catch { showStatus("⚠️ Invalid URL.", "error"); return; }
-
-        const platform = detectPlatform(url);
-        if (platform.name === "Unknown") {
-          showStatus("⚠️ Link is not YouTube/Instagram/Facebook/Snapchat, but trying anyway…", "info");
-        }
+        catch { showStatus("⚠️ Invalid URL. Please check the link.", "error"); return; }
 
         downloadBtn.disabled = true;
         downloadBtn.classList.add("loading");
-        showStatus("⏳ Processing your link… please wait.", "info");
+        // Message for Render Sleep mode
+        showStatus("⏳ Connecting to server... (If first time, wait up to 50s while server wakes up).", "info");
 
         try {
-          const requestBody = {
-            url,
-            type: currentType,
-            format: formatSelect.value,
-            quality: qualitySelect.value,
-          };
-
-          // ✅ Same-origin call to our Vercel serverless function
           const response = await fetch("/api/download", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(requestBody),
+            body: JSON.stringify({
+              url,
+              type: currentType,
+              format: formatSelect.value,
+              quality: qualitySelect.value,
+            }),
           });
 
-          const data = await response.json();
+          // Safe JSON parsing
+          const contentType = response.headers.get("content-type") || "";
+          const rawText = await response.text();
+          let data = null;
 
-          if (data.status === "success" || data.status === "redirect") {
+          if (contentType.includes("application/json")) {
+            try { data = JSON.parse(rawText); }
+            catch { data = null; }
+          }
+
+          if (!data) {
+             if (response.status === 404) {
+                 showStatus("❌ Backend API not found (404). Check GitHub folder structure.", "error");
+             } else {
+                 showStatus(`❌ Server Error (${response.status}). Please try again.`, "error");
+             }
+             return;
+          }
+
+          // Handle Cobalt v11 Response
+          if (data.status === "tunnel" || data.status === "redirect" || data.status === "success") {
             if (data.url) {
               showStatus("✅ Download ready! Opening your file…", "success");
               triggerDownload(data.url, data.filename || null);
             } else {
-              showStatus("⚠️ No download URL returned.", "error");
-            }
-          } else if (data.status === "stream") {
-            if (data.url) {
-              showStatus("✅ Live stream ready! Opening…", "success");
-              window.open(data.url, "_blank", "noopener,noreferrer");
-            } else {
-              showStatus("⚠️ Stream URL missing.", "error");
+              showStatus("⚠️ No download URL returned from server.", "error");
             }
           } else if (data.status === "picker") {
-            if (Array.isArray(data.picker) && data.picker.length > 0) {
-              const first = data.picker[0];
-              if (first.url) {
-                showStatus("✅ Media found! Downloading first item…", "success");
-                triggerDownload(first.url, first.filename || null);
-         d     } else {
-                showStatus("⚠️ Picker item has no URL.", "error");
-              }
+            if (Array.isArray(data.picker) && data.picker.length > 0 && data.picker[0].url) {
+              showStatus("✅ Media found! Downloading first item…", "success");
+              triggerDownload(data.picker[0].url, data.picker[0].filename || null);
             } else {
               showStatus("⚠️ Picker list is empty.", "error");
             }
-          } else if (data.status === "rate-limit") {
-            showStatus("🚦 Rate limit reached. Please wait and try again.", "error");
           } else if (data.status === "error") {
-            showStatus("❌ " + (data.text || "Server could not process this link."), "error");
+            showStatus("❌ " + (data.text || data.error?.code || "Server could not process this link."), "error");
           } else {
-            showStatus("⚠️ Unexpected response from server.", "error");
+            showStatus("⚠️ Unexpected response. Try a different link.", "error");
           }
         } catch (err) {
           console.error(err);
-          showStatus("❌ " + (err.message || "Network error. Please try again."), "error");
+          showStatus("❌ Network Error: Server might be waking up. Wait 1 min and try again.", "error");
         } finally {
           downloadBtn.disabled = false;
           downloadBtn.classList.remove("loading");
         }
       }
 
+      // Listeners
       downloadBtn.addEventListener("click", handleDownload);
       mediaUrlInput.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") { e.preventDefault(); handleDownload(); }
+        if (e.key === "Enter") { 
+            e.preventDefault(); 
+            handleDownload(); 
+        }
       });
+
     })();
   </script>
 </body>
