@@ -5,337 +5,125 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Media Downloader</title>
   <style>
-    /* ================= GOOGLE FONTS ================= */
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
 
-    /* ================= GLOBAL STYLES ================= */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: 'Poppins', 'Segoe UI', sans-serif;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
 
     body {
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background-color: #f4f7f6; /* Light white/grey background */
+      min-height: 100vh; display: flex; align-items: center; justify-content: center;
+      background-color: #f4f7f6;
       background-image: radial-gradient(circle at top right, rgba(37, 99, 235, 0.05), transparent 400px),
                         radial-gradient(circle at bottom left, rgba(220, 38, 38, 0.05), transparent 400px);
       padding: 20px;
     }
 
-    /* ================= CARD DESIGN ================= */
     .card {
-      background: #ffffff;
-      width: 100%;
-      max-width: 560px;
-      border-radius: 20px;
-      padding: 35px 30px;
-      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08), 0 5px 15px rgba(0, 0, 0, 0.03);
-      border-top: 6px solid #eab308; /* Gold Top Border */
-      position: relative;
-      overflow: hidden;
+      background: #ffffff; width: 100%; max-width: 580px; border-radius: 20px;
+      padding: 35px 30px; box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08);
+      border-top: 6px solid #eab308; position: relative; overflow: hidden;
     }
 
-    /* Decorative background elements */
     .card::before {
-      content: "";
-      position: absolute;
-      top: -50px;
-      right: -50px;
-      width: 150px;
-      height: 150px;
-      background: rgba(37, 99, 235, 0.05); /* Soft Blue */
-      border-radius: 50%;
-      z-index: 0;
+      content: ""; position: absolute; top: -50px; right: -50px;
+      width: 150px; height: 150px; background: rgba(37, 99, 235, 0.05); border-radius: 50%; z-index: 0;
     }
 
-    .card > * {
-      position: relative;
-      z-index: 1;
-    }
+    .card > * { position: relative; z-index: 1; }
 
-    /* ================= HEADINGS ================= */
-    .card h1 {
-      font-size: 1.8rem;
-      font-weight: 700;
-      color: #1e3a8a; /* Deep Blue */
-      margin-bottom: 8px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
+    .card h1 { font-size: 1.8rem; font-weight: 700; color: #1e3a8a; margin-bottom: 8px; display: flex; align-items: center; gap: 10px; }
+    .card h1 span { font-size: 2rem; }
 
-    .card h1 span {
-      font-size: 2rem;
-    }
+    .subtitle { font-size: 0.9rem; color: #64748b; margin-bottom: 25px; line-height: 1.5; border-left: 4px solid #dc2626; padding-left: 12px; }
 
-    .subtitle {
-      font-size: 0.9rem;
-      color: #64748b;
-      margin-bottom: 25px;
-      line-height: 1.5;
-      border-left: 4px solid #dc2626; /* Red Accent Line */
-      padding-left: 12px;
-    }
-
-    /* ================= URL INPUT ================= */
-    .input-group {
-      position: relative;
-      margin-bottom: 22px;
-    }
-
+    .input-group { position: relative; margin-bottom: 22px; }
     .input-group input {
-      width: 100%;
-      padding: 16px 18px;
-      font-size: 1rem;
-      border: 2px solid #e2e8f0;
-      border-radius: 12px;
-      outline: none;
-      transition: all 0.3s ease;
-      background: #f8fafc;
-      color: #0f172a;
-      font-weight: 500;
+      width: 100%; padding: 16px 18px; font-size: 1rem; border: 2px solid #e2e8f0;
+      border-radius: 12px; outline: none; transition: all 0.3s ease; background: #f8fafc; color: #0f172a; font-weight: 500;
     }
-
-    .input-group input:focus {
-      border-color: #2563eb; /* Blue Focus */
-      box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15);
-      background: #ffffff;
-    }
+    .input-group input:focus { border-color: #2563eb; box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15); background: #ffffff; }
 
     .platform-badge {
-      position: absolute;
-      right: 14px;
-      top: 50%;
-      transform: translateY(-50%);
-      font-size: 0.75rem;
-      font-weight: 600;
-      padding: 5px 12px;
-      border-radius: 20px;
-      background: #f1f5f9;
-      color: #475569;
-      opacity: 0;
-      transition: opacity 0.3s;
-      pointer-events: none;
+      position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+      font-size: 0.75rem; font-weight: 600; padding: 5px 12px; border-radius: 20px;
+      background: #f1f5f9; color: #475569; opacity: 0; transition: opacity 0.3s; pointer-events: none;
     }
+    .platform-badge.visible { opacity: 1; }
 
-    .platform-badge.visible {
-      opacity: 1;
-    }
-
-    /* ================= TOGGLE (VIDEO/AUDIO) ================= */
-    .toggle-group {
-      display: flex;
-      gap: 12px;
-      margin-bottom: 22px;
-    }
-
+    /* Toggle Buttons (Video, Audio, Thumbnail) */
+    .toggle-group { display: flex; gap: 10px; margin-bottom: 22px; }
     .toggle-btn {
-      flex: 1;
-      padding: 14px 10px;
-      border: 2px solid #e2e8f0;
-      border-radius: 12px;
-      background: #ffffff;
-      font-size: 1rem;
-      font-weight: 600;
-      color: #64748b;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      user-select: none;
+      flex: 1; padding: 14px 5px; border: 2px solid #e2e8f0; border-radius: 12px;
+      background: #ffffff; font-size: 0.95rem; font-weight: 600; color: #64748b;
+      cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center;
+      justify-content: center; gap: 5px; user-select: none;
     }
 
     /* Video Active (Blue) */
     .toggle-btn[data-type="video"].active {
-      border-color: #2563eb;
-      background: #eff6ff;
-      color: #1d4ed8;
-      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+      border-color: #2563eb; background: #eff6ff; color: #1d4ed8; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
     }
-
     /* Audio Active (Red) */
     .toggle-btn[data-type="audio"].active {
-      border-color: #dc2626;
-      background: #fef2f2;
-      color: #b91c1c;
-      box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15);
+      border-color: #dc2626; background: #fef2f2; color: #b91c1c; box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15);
+    }
+    /* Thumbnail Active (Gold/Yellow) */
+    .toggle-btn[data-type="thumbnail"].active {
+      border-color: #eab308; background: #fefce8; color: #a16207; box-shadow: 0 0 0 3px rgba(234, 179, 8, 0.2);
     }
 
-    .toggle-btn:hover:not(.active) {
-      border-color: #cbd5e1;
-      background: #f8fafc;
-    }
+    .toggle-btn:hover:not(.active) { border-color: #cbd5e1; background: #f8fafc; }
 
-    /* ================= OPTIONS ROW ================= */
-    .options-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 15px;
-      margin-bottom: 25px;
-    }
-
-    .option-box {
-      background: #f8fafc;
-      border-radius: 12px;
-      padding: 14px 16px;
-      border: 1.5px solid #e2e8f0;
-      transition: border-color 0.3s;
-    }
-
-    .option-box:focus-within {
-      border-color: #eab308; /* Gold Focus */
-    }
-
-    .option-box label {
-      display: block;
-      font-size: 0.75rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: #475569;
-      margin-bottom: 8px;
-    }
-
+    /* Options Row */
+    .options-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
+    .option-box { background: #f8fafc; border-radius: 12px; padding: 14px 16px; border: 1.5px solid #e2e8f0; transition: border-color 0.3s; }
+    .option-box:focus-within { border-color: #eab308; }
+    .option-box label { display: block; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: #475569; margin-bottom: 8px; }
     .option-box select {
-      width: 100%;
-      padding: 10px 12px;
-      font-size: 0.95rem;
-      border: 1.5px solid #cbd5e1;
-      border-radius: 8px;
-      background: #ffffff;
-      color: #0f172a;
-      outline: none;
-      cursor: pointer;
-      font-weight: 500;
-      transition: 0.2s;
+      width: 100%; padding: 10px 12px; font-size: 0.95rem; border: 1.5px solid #cbd5e1;
+      border-radius: 8px; background: #ffffff; color: #0f172a; outline: none; cursor: pointer; font-weight: 500;
     }
+    .option-box select:focus { border-color: #eab308; }
 
-    .option-box select:focus {
-      border-color: #eab308;
-    }
-
-    .option-box select:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      background: #f1f5f9;
-    }
-
-    /* ================= DOWNLOAD BUTTON ================= */
+    /* Download Button */
     .btn-download {
-      width: 100%;
-      padding: 16px;
-      border: none;
-      border-radius: 12px;
-      background: linear-gradient(135deg, #2563eb 0%, #dc2626 100%); /* Blue to Red Gradient */
-      color: #ffffff;
-      font-size: 1.1rem;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      margin-bottom: 20px;
-      box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+      width: 100%; padding: 16px; border: none; border-radius: 12px;
+      background: linear-gradient(135deg, #2563eb 0%, #dc2626 100%);
+      color: #ffffff; font-size: 1.1rem; font-weight: 700; cursor: pointer;
+      transition: all 0.3s ease; display: flex; align-items: center; justify-content: center;
+      gap: 10px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
     }
 
     .btn-download:hover:not(:disabled) {
       background: linear-gradient(135deg, #1d4ed8 0%, #b91c1c 100%);
-      transform: translateY(-2px);
-      box-shadow: 0 8px 25px rgba(220, 38, 38, 0.4);
+      transform: translateY(-2px); box-shadow: 0 8px 25px rgba(220, 38, 38, 0.4);
     }
-
-    .btn-download:active:not(:disabled) {
-      transform: translateY(0);
-    }
-
-    .btn-download:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-      box-shadow: none;
-    }
+    .btn-download:disabled { opacity: 0.6; cursor: not-allowed; box-shadow: none; }
 
     /* Spinner */
     .spinner {
-      width: 22px;
-      height: 22px;
-      border: 3px solid rgba(255, 255, 255, 0.3);
-      border-top-color: #ffffff;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-      display: none;
+      width: 22px; height: 22px; border: 3px solid rgba(255, 255, 255, 0.3);
+      border-top-color: #ffffff; border-radius: 50%; animation: spin 0.8s linear infinite; display: none;
     }
+    .btn-download.loading .spinner { display: block; }
+    .btn-download.loading .btn-text { display: none; }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
-    .btn-download.loading .spinner {
-      display: block;
-    }
-
-    .btn-download.loading .btn-text {
-      display: none;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
-    /* ================= STATUS MESSAGE ================= */
+    /* Status */
     .status {
-      font-size: 0.9rem;
-      text-align: center;
-      min-height: 40px;
-      padding: 12px 16px;
-      border-radius: 10px;
-      transition: all 0.3s ease;
-      word-break: break-word;
-      font-weight: 500;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      font-size: 0.9rem; text-align: center; min-height: 40px; padding: 12px 16px;
+      border-radius: 10px; transition: all 0.3s ease; word-break: break-word; font-weight: 500;
+      display: flex; align-items: center; justify-content: center;
     }
+    .status.success { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
+    .status.error { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+    .status.info { background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
 
-    .status.success {
-      background: #f0fdf4;
-      color: #166534;
-      border: 1px solid #bbf7d0;
-    }
-
-    .status.error {
-      background: #fef2f2;
-      color: #991b1b;
-      border: 1px solid #fecaca;
-    }
-
-    .status.info {
-      background: #eff6ff;
-      color: #1e40af;
-      border: 1px solid #bfdbfe;
-      animation: pulse 1.5s infinite;
-    }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.7; }
-    }
-
-    /* ================= RESPONSIVE ================= */
     @media (max-width: 480px) {
-      .card {
-        padding: 25px 20px;
-      }
-      .options-row {
-        grid-template-columns: 1fr;
-      }
-      .card h1 {
-        font-size: 1.5rem;
-      }
+      .card { padding: 25px 20px; }
+      .options-row { grid-template-columns: 1fr; }
+      .card h1 { font-size: 1.5rem; }
+      .toggle-btn { font-size: 0.8rem; padding: 12px 2px; }
     }
   </style>
 </head>
@@ -345,7 +133,7 @@
     <h1><span>⬇️</span> Media Downloader</h1>
     <p class="subtitle">
       Paste a link from <strong>YouTube, Instagram, Facebook, or Snapchat</strong> 
-      to download high-quality video or audio.
+      to download high-quality video, audio, or thumbnail.
     </p>
 
     <!-- URL Input -->
@@ -354,14 +142,15 @@
       <span class="platform-badge" id="platformBadge"></span>
     </div>
 
-    <!-- Video / Audio Toggle -->
+    <!-- Toggle Buttons -->
     <div class="toggle-group">
       <div class="toggle-btn active" data-type="video" id="toggleVideo">🎬 Video</div>
       <div class="toggle-btn" data-type="audio" id="toggleAudio">🎵 Audio</div>
+      <div class="toggle-btn" data-type="thumbnail" id="toggleThumbnail">🖼️ Thumbnail</div>
     </div>
 
-    <!-- Format & Quality -->
-    <div class="options-row">
+    <!-- Format & Quality (Thumbnail के समय छिप जाएगा) -->
+    <div class="options-row" id="optionsRow">
       <div class="option-box">
         <label for="formatSelect">File Format</label>
         <select id="formatSelect"></select>
@@ -386,11 +175,12 @@
     (function () {
       "use strict";
 
-      // DOM Elements
       const mediaUrlInput = document.getElementById("mediaUrl");
       const platformBadge = document.getElementById("platformBadge");
       const toggleVideo   = document.getElementById("toggleVideo");
       const toggleAudio   = document.getElementById("toggleAudio");
+      const toggleThumbnail = document.getElementById("toggleThumbnail");
+      const optionsRow    = document.getElementById("optionsRow");
       const formatSelect  = document.getElementById("formatSelect");
       const qualitySelect = document.getElementById("qualitySelect");
       const downloadBtn   = document.getElementById("downloadBtn");
@@ -398,37 +188,20 @@
 
       let currentType = "video";
 
-      // Data for Dropdowns
       const FORMATS = {
-        video: [
-          { value: "mp4",  label: "MP4 (H.264)" },
-          { value: "webm", label: "WebM" },
-        ],
-        audio: [
-          { value: "mp3",  label: "MP3" },
-          { value: "ogg",  label: "OGG" },
-          { value: "wav",  label: "WAV" },
-          { value: "opus", label: "OPUS" },
-          { value: "best", label: "Best Available" },
-        ],
+        video: [{ value: "mp4", label: "MP4 (H.264)" }, { value: "webm", label: "WebM" }],
+        audio: [{ value: "mp3", label: "MP3" }, { value: "ogg", label: "OGG" }, { value: "wav", label: "WAV" }, { value: "opus", label: "OPUS" }]
       };
 
       const QUALITIES = {
         video: [
-          { value: "144",  label: "144p" },
-          { value: "240",  label: "240p" },
-          { value: "360",  label: "360p" },
-          { value: "480",  label: "480p" },
-          { value: "720",  label: "720p (HD)" },
-          { value: "1080", label: "1080p (Full HD)" },
-          { value: "1440", label: "1440p (2K)" },
-          { value: "2160", label: "2160p (4K)" },
-          { value: "max",  label: "Max Available" },
+          { value: "144", label: "144p" }, { value: "240", label: "240p" }, { value: "360", label: "360p" },
+          { value: "480", label: "480p" }, { value: "720", label: "720p (HD)" }, { value: "1080", label: "1080p (Full HD)" },
+          { value: "1440", label: "1440p (2K)" }, { value: "2160", label: "2160p (4K)" }, { value: "max", label: "Max Available" }
         ],
-        audio: [{ value: "best", label: "Best Available" }],
+        audio: [{ value: "best", label: "Best Available" }]
       };
 
-      // Populate Dropdowns
       function populateSelect(el, opts) {
         el.innerHTML = "";
         opts.forEach((o) => {
@@ -440,24 +213,30 @@
       }
 
       function refreshFormats() {
-        populateSelect(formatSelect, FORMATS[currentType]);
-        populateSelect(qualitySelect, QUALITIES[currentType]);
+        populateSelect(formatSelect, FORMATS[currentType] || []);
+        populateSelect(qualitySelect, QUALITIES[currentType] || []);
         qualitySelect.disabled = currentType === "audio";
       }
 
-      // Toggle Handlers
       function setType(type) {
         currentType = type;
         toggleVideo.classList.toggle("active", type === "video");
         toggleAudio.classList.toggle("active", type === "audio");
-        refreshFormats();
+        toggleThumbnail.classList.toggle("active", type === "thumbnail");
+
+        if (type === "thumbnail") {
+          optionsRow.style.display = "none"; // Hide dropdowns for thumbnail
+        } else {
+          optionsRow.style.display = "grid";
+          refreshFormats();
+        }
       }
 
       toggleVideo.addEventListener("click", () => setType("video"));
       toggleAudio.addEventListener("click", () => setType("audio"));
+      toggleThumbnail.addEventListener("click", () => setType("thumbnail"));
       setType("video");
 
-      // Platform Detector
       function detectPlatform(url) {
         if (!url) return null;
         const l = url.toLowerCase();
@@ -478,7 +257,6 @@
         }
       });
 
-      // Status Helpers
       function showStatus(msg, type = "info") {
         statusMsg.textContent = msg;
         statusMsg.className = "status " + type;
@@ -488,7 +266,6 @@
         statusMsg.className = "status";
       }
 
-      // Trigger File Download
       function triggerDownload(url, filename) {
         const a = document.createElement("a");
         a.href = url;
@@ -500,7 +277,6 @@
         document.body.removeChild(a);
       }
 
-      // MAIN DOWNLOAD FUNCTION (Cobalt v11 + Render Support)
       async function handleDownload() {
         clearStatus();
         const url = mediaUrlInput.value.trim();
@@ -515,76 +291,58 @@
 
         downloadBtn.disabled = true;
         downloadBtn.classList.add("loading");
-        // Message for Render Sleep mode
-        showStatus("⏳ Connecting to server... (If first time, wait up to 50s while server wakes up).", "info");
+        showStatus("⏳ Connecting to server... (First time wait 50s to wake up).", "info");
 
         try {
+          const payload = { url, type: currentType };
+          if (currentType !== "thumbnail") {
+            payload.format = formatSelect.value;
+            payload.quality = qualitySelect.value;
+          }
+
           const response = await fetch("/api/download", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              url,
-              type: currentType,
-              format: formatSelect.value,
-              quality: qualitySelect.value,
-            }),
+            body: JSON.stringify(payload),
           });
 
-          // Safe JSON parsing
           const contentType = response.headers.get("content-type") || "";
           const rawText = await response.text();
           let data = null;
 
           if (contentType.includes("application/json")) {
-            try { data = JSON.parse(rawText); }
-            catch { data = null; }
+            try { data = JSON.parse(rawText); } catch { data = null; }
           }
 
           if (!data) {
-             if (response.status === 404) {
-                 showStatus("❌ Backend API not found (404). Check GitHub folder structure.", "error");
-             } else {
-                 showStatus(`❌ Server Error (${response.status}). Please try again.`, "error");
-             }
+             showStatus(`❌ Server Error (${response.status}). Check API route.`, "error");
              return;
           }
 
-          // Handle Cobalt v11 Response
           if (data.status === "tunnel" || data.status === "redirect" || data.status === "success") {
             if (data.url) {
               showStatus("✅ Download ready! Opening your file…", "success");
               triggerDownload(data.url, data.filename || null);
             } else {
-              showStatus("⚠️ No download URL returned from server.", "error");
-            }
-          } else if (data.status === "picker") {
-            if (Array.isArray(data.picker) && data.picker.length > 0 && data.picker[0].url) {
-              showStatus("✅ Media found! Downloading first item…", "success");
-              triggerDownload(data.picker[0].url, data.picker[0].filename || null);
-            } else {
-              showStatus("⚠️ Picker list is empty.", "error");
+              showStatus("⚠️ No download URL returned.", "error");
             }
           } else if (data.status === "error") {
-            showStatus("❌ " + (data.text || data.error?.code || "Server could not process this link."), "error");
+            showStatus("❌ " + (data.text || "Server could not process this link."), "error");
           } else {
-            showStatus("⚠️ Unexpected response. Try a different link.", "error");
+            showStatus("⚠️ Unexpected response. Try again.", "error");
           }
         } catch (err) {
           console.error(err);
-          showStatus("❌ Network Error: Server might be waking up. Wait 1 min and try again.", "error");
+          showStatus("❌ Network error. Server might be waking up. Wait 1 min and retry.", "error");
         } finally {
           downloadBtn.disabled = false;
           downloadBtn.classList.remove("loading");
         }
       }
 
-      // Listeners
       downloadBtn.addEventListener("click", handleDownload);
       mediaUrlInput.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") { 
-            e.preventDefault(); 
-            handleDownload(); 
-        }
+        if (e.key === "Enter") { e.preventDefault(); handleDownload(); }
       });
 
     })();
