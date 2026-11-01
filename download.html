@@ -33,7 +33,8 @@ input:focus,select:focus{border-color:var(--acc1)}
 #msg{margin-top:14px;padding:12px;border-radius:12px;font-size:.92rem;line-height:1.5;display:none;border:1px solid var(--line);background:var(--field)}
 #msg a{color:var(--acc1);font-weight:700}
 #player{display:none;margin-top:14px}
-#player video,#player audio{width:100%;border-radius:12px;background:#000;display:block}
+#player video,#player audio,#player img{width:100%;border-radius:12px;background:#000;display:block;max-height:420px;object-fit:contain}
+a.dlbtn{display:none;margin-top:12px;text-align:center;text-decoration:none;color:#fff;font-weight:700;padding:14px;border-radius:14px;background:#10b981}
 .chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:18px}
 .chips span{font-size:.8rem;color:var(--muted);border:1px solid var(--line);border-radius:99px;padding:5px 12px;background:var(--card)}
 .note{margin-top:16px;text-align:center;color:var(--muted);font-size:.78rem;line-height:1.5}
@@ -54,14 +55,14 @@ input:focus,select:focus{border-color:var(--acc1)}
       <input type="text" id="url" placeholder="Paste a Reel or Shorts link" inputmode="url" autocomplete="off">
       <button class="ghost" id="paste">Paste</button>
     </div>
-    <div class="opts">
-      <select id="quality"><option value="1080">1080p</option><option value="720">720p</option><option value="480">480p</option><option value="360">360p</option><option value="max">Max</option></select>
-      <select id="format"><option value="mp4">MP4</option><option value="webm">WebM</option></select>
+    <div class="opts" id="opts">
+      <select id="quality"><option value="1080">Up to 1080p</option><option value="720">Up to 720p</option><option value="480">Up to 480p</option><option value="360">Up to 360p</option><option value="best">Best available</option></select>
     </div>
     <button class="go" id="go">Download</button>
     <div class="bar" id="bar"><i></i></div>
     <div id="msg"></div>
     <div id="player"></div>
+    <a class="dlbtn" id="dlbtn" href="#">Download file</a>
   </div>
   <div class="chips"><span>Instagram Reels</span><span>YouTube Shorts</span><span>YouTube Video</span><span>Facebook</span><span>Snapchat</span></div>
   <p class="note">Public links only. Download only content you own or have permission to save.</p>
@@ -69,17 +70,12 @@ input:focus,select:focus{border-color:var(--acc1)}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 (function(){
-  var COBALT="https://cobalt-latest-33pl.onrender.com";
+  var BACKEND="https://reelsnap-engine.onrender.com";
   var HOSTS=["youtube.com","youtu.be","youtube-nocookie.com","instagram.com","facebook.com","fb.watch","snapchat.com"];
   var type="video",$=function(i){return document.getElementById(i)};
-  var q=$("quality"),f=$("format"),msg=$("msg"),bar=$("bar"),go=$("go");
+  var q=$("quality"),msg=$("msg"),bar=$("bar"),go=$("go"),P=$("player"),dlb=$("dlbtn");
 
-  function opts(){
-    var a=type==="audio",t=type==="thumbnail";
-    q.style.display=(a||t)?"none":"";
-    f.style.display=t?"none":"";
-    f.innerHTML=a?'<option value="mp3">MP3</option><option value="opus">Opus</option><option value="wav">WAV</option>':'<option value="mp4">MP4</option><option value="webm">WebM</option>';
-  }
+  function opts(){$("opts").style.display=type==="video"?"flex":"none"}
   $("tabs").onclick=function(e){var t=e.target.getAttribute("data-t");if(!t)return;type=t;
     [].forEach.call(document.querySelectorAll(".tab"),function(b){b.classList.toggle("on",b===e.target)});opts();};
   $("paste").onclick=function(){
@@ -88,89 +84,47 @@ input:focus,select:focus{border-color:var(--acc1)}
   };
   function show(h){msg.innerHTML=h;msg.style.display="block"}
   function sleep(ms){return new Promise(function(r){setTimeout(r,ms)})}
-  function esc(s){return String(s).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;")}
   function host(u){try{return new URL(u).hostname.toLowerCase().replace(/^www\./,"")}catch(e){return ""}}
   function okHost(u){var h=host(u);return !!h&&HOSTS.some(function(d){return h===d||h.slice(-d.length-1)==="."+d})}
-  function isImg(v){return typeof v==="string"&&/\.(jpe?g|png|webp|avif|gif|bmp|heic)$/.test(v.split("?")[0].split("#")[0].toLowerCase())}
-  function friendly(d,st){
-    var c=d&&d.error&&d.error.code?String(d.error.code):"";
-    if(c.indexOf("login")>-1)return "The platform is asking for sign-in. Try another public link or try again later.";
-    if(c.indexOf("not_available")>-1||c.indexOf("unavailable")>-1)return "This video is not available (private, removed or region-locked).";
-    if(c.indexOf("age")>-1)return "This video is age-restricted.";
-    if(st===429||c.indexOf("rate")>-1)return "Too many requests right now. Please try again in a moment.";
-    return c?"Could not download this link ("+c+"). Try another public link.":"Could not process this link. Make sure the post is public.";
+  function end(){go.disabled=false;go.textContent="Download";bar.style.display="none"}
+  function fail(t){show(t);end()}
+  function clearResult(){P.style.display="none";P.innerHTML="";dlb.style.display="none"}
+  function api(body){
+    return fetch(BACKEND+"/api/extract",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)})
+      .then(function(r){return r.json().then(function(d){return {ok:r.ok,d:d}})});
   }
-  function post(body){
-    return fetch(COBALT+"/",{method:"POST",headers:{"Accept":"application/json","Content-Type":"application/json"},body:JSON.stringify(body)})
-      .then(function(r){return r.json().then(function(d){return {st:r.status,d:d}})});
-  }
-  function ytId(u){
-    try{var p=new URL(u),id=p.searchParams.get("v");
-      if(!id&&p.hostname.indexOf("youtu.be")>-1)id=p.pathname.split("/").filter(Boolean)[0];
-      if(!id&&p.pathname.indexOf("/shorts/")>-1)id=p.pathname.split("/shorts/")[1].split("/")[0];
-      if(!id&&p.pathname.indexOf("/embed/")>-1)id=p.pathname.split("/embed/")[1].split("/")[0];
-      return /^[a-zA-Z0-9_-]{11}$/.test(id||"")?id:null}catch(e){return null}
-  }
-  function done(tab,href,kind){
-    var P=$("player"),el;
-    if(kind==="image"){el=document.createElement("img");el.src=href;el.style.cssText="width:100%;border-radius:12px"}
+  function showResult(d){
+    var src=BACKEND+d.stream_url,dl=BACKEND+d.download_url,el,tm;
+    function bad(t){clearTimeout(tm);clearResult();show(t)}
+    if(d.media_type==="thumbnail"){el=document.createElement("img");el.src=src;el.alt="Thumbnail"}
     else{
-      el=document.createElement(kind==="audio"?"audio":"video");el.controls=true;el.preload="metadata";el.setAttribute("playsinline","");
-      var bad=function(t){clearTimeout(tm);P.style.display="none";P.innerHTML="";show(t)};
-      var tm=setTimeout(function(){if(!el.readyState)show('Still loading… If the player stays at 0:00, <a href="'+esc(href)+'" target="_blank" rel="noopener">open it in a new tab</a>.')},12000);
-      el.onloadedmetadata=function(){clearTimeout(tm);if(kind==="video"&&!el.videoWidth)bad("The server sent audio or a picture, not a video. Instagram often does this to free servers. Try another public link.")};
-      el.onerror=function(){bad("This file could not be played as a video. The platform probably blocked the download server and sent a picture instead. Try another public link.")};
-      el.src=href;
+      el=document.createElement(d.media_type==="audio"?"audio":"video");el.controls=true;el.preload="metadata";el.setAttribute("playsinline","");
+      tm=setTimeout(function(){if(!el.readyState)show('Still loading… You can already use the green <b>Download file</b> button.')},12000);
+      el.onloadedmetadata=function(){clearTimeout(tm);if(d.media_type==="video"&&!el.videoWidth)bad("The platform sent audio or a picture, not a video. Try another public link.")};
+      el.onerror=function(){bad("The preview could not play, but the green Download file button may still work. Try it, or use another link.");dlb.href=dl;dlb.style.display="block"};
+      el.src=src;
     }
     P.innerHTML="";P.appendChild(el);P.style.display="block";
-    show('Ready! On the player, tap the three dots (⋮) and choose <b>Download</b>. You can also change playback speed there. Not working? <a href="'+esc(href)+'" target="_blank" rel="noopener">Open in a new tab</a>.');
+    dlb.href=dl;dlb.style.display="block";
+    show('Ready! Tap <b>Download file</b> below. You can also use the three dots (⋮) on the player for playback speed and more.');
+    end();
   }
-  function probe(u){return fetch(u,{method:"HEAD"}).then(function(r){return (r.headers.get("content-type")||"").toLowerCase()}).catch(function(){return ""})}
-  function end(){go.disabled=false;go.textContent="Download";bar.style.display="none"}
 
   go.onclick=function(){
     var u=$("url").value.trim();
     if(!u){show("Please paste a link first.");return}
     if(!okHost(u)){show("Only public YouTube, Instagram, Facebook and Snapchat links are supported.");return}
-    var tab=null;
-    $("player").style.display="none";$("player").innerHTML="";
-    function fail(t){show(t);end()}
-
-    if(type==="thumbnail"){
-      var id=ytId(u);
-      if(!id)return fail("Thumbnails work for YouTube links only.");
-      return done(tab,"https://img.youtube.com/vi/"+id+"/maxresdefault.jpg","image"),end();
-    }
-
+    clearResult();
     go.disabled=true;go.textContent="Preparing…";bar.style.display="block";msg.style.display="none";
-    var body={url:u,downloadMode:type==="audio"?"audio":"auto",filenameStyle:"pretty",localProcessing:"disabled"};
-    if(type==="audio")body.audioFormat=f.value;
-    else{body.videoQuality=q.value;body.youtubeVideoCodec="h264";
-      var h=host(u);if(h==="youtube.com"||h.slice(-12)===".youtube.com"||h==="youtu.be")body.youtubeVideoContainer=f.value;}
-
-    post(body).catch(function(){
-      show("Waking up the download server, please wait…");
-      return sleep(5000).then(function(){return post(body)});
+    var body={url:u,media_type:type,quality:q.value};
+    api(body).catch(function(){
+      show("Waking up the server (free servers sleep). This can take up to a minute…");
+      return sleep(8000).then(function(){return api(body)});
     }).then(function(x){
-      var d=x.d;
-      if(x.st>=400||d.status==="error")return fail(friendly(d,x.st));
-      var href=null;
-      if(d.status==="picker"){
-        var items=d.picker||[],p=null;
-        for(var i=0;i<items.length;i++){if(items[i]&&items[i].type==="video"&&items[i].url){p=items[i];break}}
-        if(type==="audio"&&d.audio)href=d.audio;
-        else if(p&&!isImg(p.url)&&!isImg(p.filename))href=p.url;
-        else return fail("No downloadable video was found in this post.");
-      }else if(d.status==="tunnel"||d.status==="redirect"){
-        if(type==="video"&&(isImg(d.filename)||isImg(d.url)))return fail("This link points to an image, not a video.");
-        href=d.url;
-      }else return fail("Unexpected response. Please try again later.");
-      return probe(href).then(function(ct){
-        if(ct.indexOf("image/")===0)return fail("The server sent a picture instead of a video. This is a limit of the free download server, not your link. Try another public link.");
-        done(tab,href,type==="audio"?"audio":"video");end();
-      });
+      if(!x.ok)return fail((x.d&&x.d.detail)||"Something went wrong. Please try again.");
+      showResult(x.d);
     }).catch(function(){
-      fail("Could not reach the download server. Please try again in a minute. (In Claude preview this is expected.)");
+      fail("Could not reach the download server. Please try again in a minute.");
     });
   };
   opts();
