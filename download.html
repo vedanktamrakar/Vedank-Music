@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>ReelSnap – Reels, Shorts and Video Downloader</title>
+<title>ReelSnap – Reels and Media Downloader</title>
 <style>
 :root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
 --bg1:#eef0ff;--bg2:#fbeaff;--card:rgba(255,255,255,.72);--text:#1b1740;--muted:#5d5a86;--line:rgba(80,70,160,.22);--acc1:#6c4bff;--acc2:#ff4b9a;--field:rgba(255,255,255,.9)}
@@ -44,7 +44,7 @@ a.dlbtn{display:none;margin-top:12px;text-align:center;text-decoration:none;colo
 <canvas id="bg"></canvas>
 <main>
   <h1>ReelSnap</h1>
-  <p class="sub">Instagram Reels, YouTube Shorts and videos – one link, one tap</p>
+  <p class="sub">Instagram Reels, Facebook, Snapchat and YouTube thumbnails – one link, one tap</p>
   <div class="card">
     <div class="tabs" id="tabs">
       <button class="tab on" data-t="video">Video</button>
@@ -52,7 +52,7 @@ a.dlbtn{display:none;margin-top:12px;text-align:center;text-decoration:none;colo
       <button class="tab" data-t="thumbnail">Thumbnail</button>
     </div>
     <div class="row">
-      <input type="text" id="url" placeholder="Paste a Reel or Shorts link" inputmode="url" autocomplete="off">
+      <input type="text" id="url" placeholder="Paste a Reel or post link" inputmode="url" autocomplete="off">
       <button class="ghost" id="paste">Paste</button>
     </div>
     <div class="opts" id="opts">
@@ -64,14 +64,16 @@ a.dlbtn{display:none;margin-top:12px;text-align:center;text-decoration:none;colo
     <div id="player"></div>
     <a class="dlbtn" id="dlbtn" href="#">Download file</a>
   </div>
-  <div class="chips"><span>Instagram Reels</span><span>YouTube Shorts</span><span>YouTube Video</span><span>Facebook</span><span>Snapchat</span></div>
-  <p class="note">Public links only. Download only content you own or have permission to save.</p>
+  <div class="chips"><span>Instagram Reels</span><span>Facebook</span><span>Snapchat</span><span>YouTube Thumbnail</span></div>
+  <p class="note">YouTube video download is not supported on the cloud server.<br>Public links only. Download only content you own or have permission to save.</p>
 </main>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 (function(){
   var BACKEND="https://reelsnap-engine.onrender.com";
   var HOSTS=["youtube.com","youtu.be","youtube-nocookie.com","instagram.com","facebook.com","fb.watch","snapchat.com"];
+  var YT=["youtube.com","youtu.be","youtube-nocookie.com"];
+  var YT_MSG="YouTube video download is not supported on the cloud server. Instagram Reels, Facebook, Snapchat and YouTube Thumbnail are fully functional.";
   var type="video",$=function(i){return document.getElementById(i)};
   var q=$("quality"),msg=$("msg"),bar=$("bar"),go=$("go"),P=$("player"),dlb=$("dlbtn");
 
@@ -85,7 +87,7 @@ a.dlbtn{display:none;margin-top:12px;text-align:center;text-decoration:none;colo
   function show(h){msg.innerHTML=h;msg.style.display="block"}
   function sleep(ms){return new Promise(function(r){setTimeout(r,ms)})}
   function host(u){try{return new URL(u).hostname.toLowerCase().replace(/^www\./,"")}catch(e){return ""}}
-  function okHost(u){var h=host(u);return !!h&&HOSTS.some(function(d){return h===d||h.slice(-d.length-1)==="."+d})}
+  function inList(u,list){var h=host(u);return !!h&&list.some(function(d){return h===d||h.slice(-d.length-1)==="."+d})}
   function end(){go.disabled=false;go.textContent="Download";bar.style.display="none"}
   function fail(t){show(t);end()}
   function clearResult(){P.style.display="none";P.innerHTML="";dlb.style.display="none"}
@@ -113,8 +115,9 @@ a.dlbtn{display:none;margin-top:12px;text-align:center;text-decoration:none;colo
   go.onclick=function(){
     var u=$("url").value.trim();
     if(!u){show("Please paste a link first.");return}
-    if(!okHost(u)){show("Only public YouTube, Instagram, Facebook and Snapchat links are supported.");return}
+    if(!inList(u,HOSTS)){show("Only public Instagram, Facebook, Snapchat and YouTube (thumbnail) links are supported.");return}
     clearResult();
+    if(inList(u,YT)&&type!=="thumbnail"){show(YT_MSG);return}
     go.disabled=true;go.textContent="Preparing…";bar.style.display="block";msg.style.display="none";
     var body={url:u,media_type:type,quality:q.value};
     api(body).catch(function(){
