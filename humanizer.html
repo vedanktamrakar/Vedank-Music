@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vedank Music Humanizer</title>
-    <meta name="description" content="AI Music Humanizer - Improve perceptual naturalness and production quality of AI-generated songs">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
 body { font-family: 'Segoe UI', sans-serif; background: #0a0a0f; color: #fff; margin: 0; }
@@ -24,6 +23,8 @@ body { font-family: 'Segoe UI', sans-serif; background: #0a0a0f; color: #fff; ma
 .btn-secondary { background: #12121a; color: #fff; border: 1px solid rgba(0,212,255,0.2); }
 .file-info { background: rgba(0,212,255,0.05); padding: 16px; border-radius: 8px; margin: 16px 0; display: none; }
 .status-bar { height: 4px; background: #12121a; border-radius: 4px; margin-bottom: 8px; }
+.status-bar.processing::after { content:''; display:block; height:100%; width:100%; background:linear-gradient(135deg,#00d4ff,#ffd700); animation:pulse 1s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
 .control-tabs { display: flex; gap: 4px; margin-bottom: 16px; }
 .tab-btn { padding: 8px 16px; background: transparent; border: none; color: #b0b0c0; cursor: pointer; }
 .tab-btn.active { color: #00d4ff; border-bottom: 2px solid #00d4ff; }
@@ -31,12 +32,6 @@ body { font-family: 'Segoe UI', sans-serif; background: #0a0a0f; color: #fff; ma
 .control-panel.active { display: block; }
 .slider { width: 100%; }
 .slider-value { color: #00d4ff; font-family: monospace; margin-left: 8px; }
-.player-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
-.player-card { background: #12121a; border: 1px solid rgba(0,212,255,0.2); border-radius: 8px; padding: 16px; text-align: center; }
-.player-btn { width: 40px; height: 40px; border-radius: 50%; border: 1px solid rgba(0,212,255,0.2); background: #1a1a25; color: #fff; cursor: pointer; margin: 0 4px; }
-.modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); align-items: center; justify-content: center; z-index: 1000; }
-.modal.active { display: flex; }
-.modal-content { background: #12121a; padding: 32px; border-radius: 12px; text-align: center; }
 @media (max-width: 1200px) { .humanizer-main { grid-template-columns: 1fr; } }
 </style>
 </head>
@@ -51,35 +46,42 @@ body { font-family: 'Segoe UI', sans-serif; background: #0a0a0f; color: #fff; ma
                     <input type="file" id="audioUpload" accept=".wav,.mp3,.ogg,.aac,.flac" hidden>
                     <div class="upload-icon">🎵</div>
                     <p>Drop audio file here or click to browse</p>
-                    <p class="hint">Supported: WAV, MP3, OGG, AAC, FLAC (2-5 minutes)</p>
+                    <p class="hint">Supported: WAV, MP3, OGG, AAC, FLAC</p>
                 </div>
                 <div class="file-info" id="fileInfo">
                     <h3>File Information</h3>
-                    <table><tr><td>Name:</td><td id="fileName">-</td></tr><tr><td>Duration:</td><td id="fileDuration">-</td></tr><tr><td>Sample Rate:</td><td id="fileSampleRate">-</td></tr><tr><td>Channels:</td><td id="fileChannels">-</td></tr><tr><td>File Size:</td><td id="fileSize">-</td></tr></table>
+                    <table>
+                        <tr><td>Name:</td><td id="fileName">-</td></tr>
+                        <tr><td>Duration:</td><td id="fileDuration">-</td></tr>
+                        <tr><td>Sample Rate:</td><td id="fileSampleRate">-</td></tr>
+                        <tr><td>Channels:</td><td id="fileChannels">-</td></tr>
+                        <tr><td>File Size:</td><td id="fileSize">-</td></tr>
+                    </table>
                 </div>
-                <div class="processing-status" id="processingStatus"><div class="status-bar" id="statusBar"></div><p id="statusText">Ready</p></div>
-                <div class="action-buttons"><button class="btn btn-primary" id="processBtn" disabled>Process Audio</button><button class="btn btn-secondary" id="resetBtn">Reset</button></div>
+                <div class="processing-status"><div class="status-bar" id="statusBar"></div><p id="statusText">Ready</p></div>
+                <div class="action-buttons">
+                    <button class="btn btn-primary" id="processBtn" disabled>Process Audio</button>
+                    <button class="btn btn-secondary" id="resetBtn">Reset</button>
+                </div>
             </div>
         </section>
         <section class="panel center-panel">
-            <div class="panel-header"><h2>Audio Analysis & Visualization</h2></div>
+            <div class="panel-header"><h2>Analysis</h2></div>
             <div class="panel-content">
-                <div class="visualizer-container" id="visualizerContainer" style="height:300px;background:#12121a;border-radius:8px;position:relative;">
+                <div id="visualizerContainer" style="height:250px;background:#12121a;border-radius:8px;position:relative;">
                     <canvas id="threeCanvas" style="width:100%;height:100%;"></canvas>
-                    <div class="visualizer-overlay" id="visualizerOverlay" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#6a6a7a;"><p>Audio visualizer will appear here</p></div>
+                    <div id="visualizerOverlay" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#6a6a7a;"><p>Visualizer</p></div>
                 </div>
-                <div class="analysis-dashboard" id="analysisDashboard">
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px;">
-                        <div style="background:#12121a;padding:12px;border-radius:8px;"><h4 style="color:#00d4ff;">Waveform</h4><canvas id="waveformCanvas" style="width:100%;height:80px;background:#1a1a25;"></canvas><div>Peak: <span id="peakLevel">-∞ dB</span></div><div>RMS: <span id="rmsLevel">-∞ dB</span></div></div>
-                        <div style="background:#12121a;padding:12px;border-radius:8px;"><h4 style="color:#00d4ff;">Spectrum</h4><canvas id="spectrumCanvas" style="width:100%;height:80px;background:#1a1a25;"></canvas><div>Dominant: <span id="dominantFreq">- Hz</span></div><div>Centroid: <span id="spectralCentroid">- Hz</span></div></div>
-                        <div style="background:#12121a;padding:12px;border-radius:8px;"><h4 style="color:#00d4ff;">Loudness</h4><canvas id="loudnessCanvas" style="width:100%;height:80px;background:#1a1a25;"></canvas><div>LUFS: <span id="lufsValue">-∞</span></div><div>DR: <span id="dynamicRange">- dB</span></div></div>
-                        <div style="background:#12121a;padding:12px;border-radius:8px;"><h4 style="color:#00d4ff;">Stereo</h4><canvas id="stereoCanvas" style="width:100%;height:80px;background:#1a1a25;"></canvas><div>Width: <span id="stereoWidth">- %</span></div><div>Corr: <span id="stereoCorrelation">-</span></div></div>
-                    </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px;">
+                    <div style="background:#12121a;padding:10px;border-radius:6px;"><canvas id="waveformCanvas" style="width:100%;height:60px;background:#1a1a25;"></canvas><div>Peak: <span id="peakLevel">-</span></div></div>
+                    <div style="background:#12121a;padding:10px;border-radius:6px;"><canvas id="spectrumCanvas" style="width:100%;height:60px;background:#1a1a25;"></canvas><div>Freq: <span id="dominantFreq">-</span></div></div>
+                    <div style="background:#12121a;padding:10px;border-radius:6px;"><canvas id="loudnessCanvas" style="width:100%;height:60px;background:#1a1a25;"></canvas><div>LUFS: <span id="lufsValue">-</span></div></div>
+                    <div style="background:#12121a;padding:10px;border-radius:6px;"><canvas id="stereoCanvas" style="width:100%;height:60px;background:#1a1a25;"></canvas><div>Width: <span id="stereoWidth">-</span></div></div>
                 </div>
             </div>
         </section>
         <section class="panel right-panel">
-            <div class="panel-header"><h2>Processing Controls</h2></div>
+            <div class="panel-header"><h2>Controls</h2></div>
             <div class="panel-content">
                 <div class="control-tabs">
                     <button class="tab-btn active" data-tab="vocal">Vocal</button>
@@ -87,68 +89,118 @@ body { font-family: 'Segoe UI', sans-serif; background: #0a0a0f; color: #fff; ma
                     <button class="tab-btn" data-tab="pitch">Pitch</button>
                     <button class="tab-btn" data-tab="texture">Texture</button>
                 </div>
-                <div class="control-panel active" id="vocalControls"><h3 style="color:#00d4ff;">Vocal Expression</h3>
-                    <div class="control-group"><label>Expression Intensity</label><input type="range" id="expressionIntensity" min="0" max="100" value="50" class="slider"><span class="slider-value" id="expressionIntensityValue">50</span></div>
-                    <div class="control-group"><label>Phrase Dynamics</label><input type="range" id="phraseDynamics" min="0" max="100" value="50" class="slider"><span class="slider-value" id="phraseDynamicsValue">50</span></div>
-                    <div class="control-group"><label>Tonal Processing</label><input type="range" id="tonalProcessing" min="0" max="100" value="50" class="slider"><span class="slider-value" id="tonalProcessingValue">50</span></div>
-                    <div class="control-group"><label>Processing Strength</label><input type="range" id="processingStrength" min="0" max="100" value="50" class="slider"><span class="slider-value" id="processingStrengthValue">50</span></div>
-                    <button class="btn" id="separateVocalsBtn" disabled style="background:#ff4444;color:#fff;margin-top:12px;">Separate Vocals</button>
+                <div class="control-panel active" id="vocalControls">
+                    <div class="control-group"><label>Expression</label><input type="range" id="expressionIntensity" class="slider" value="50"><span class="slider-value" id="expressionIntensityValue">50</span></div>
+                    <div class="control-group"><label>Phrase Dynamics</label><input type="range" id="phraseDynamics" class="slider" value="50"><span class="slider-value" id="phraseDynamicsValue">50</span></div>
+                    <div class="control-group"><label>Tonal</label><input type="range" id="tonalProcessing" class="slider" value="50"><span class="slider-value" id="tonalProcessingValue">50</span></div>
+                    <div class="control-group"><label>Strength</label><input type="range" id="processingStrength" class="slider" value="50"><span class="slider-value" id="processingStrengthValue">50</span></div>
                 </div>
-                <div class="control-panel" id="timingControls"><h3 style="color:#00d4ff;">Timing & Dynamics</h3>
-                    <div class="control-group"><label>Dynamic Variation</label><input type="range" id="dynamicVariation" min="0" max="100" value="50" class="slider"><span class="slider-value" id="dynamicVariationValue">50</span></div>
-                    <div class="control-group"><label>Level Automation</label><input type="range" id="levelAutomation" min="0" max="100" value="50" class="slider"><span class="slider-value" id="levelAutomationValue">50</span></div>
-                    <div class="control-group"><label>Phrase Changes</label><input type="range" id="phraseChanges" min="0" max="100" value="50" class="slider"><span class="slider-value" id="phraseChangesValue">50</span></div>
-                    <div class="control-group"><label>Timing Adjustment</label><input type="range" id="timingAdjustment" min="-100" max="100" value="0" class="slider"><span class="slider-value" id="timingAdjustmentValue">0</span></div>
-                    <div class="control-group"><label>Compression</label><input type="range" id="compression" min="0" max="100" value="0" class="slider"><span class="slider-value" id="compressionValue">0</span></div>
-                    <div class="control-group"><label>Compression Ratio</label><select id="compressionRatio"><option value="2">2:1</option><option value="4" selected>4:1</option><option value="8">8:1</option><option value="16">16:1</option></select></div>
-                    <div class="control-group"><label>Threshold</label><input type="range" id="compressionThreshold" min="-60" max="0" value="-20" class="slider"><span class="slider-value" id="compressionThresholdValue">-20</span></div>
+                <div class="control-panel" id="timingControls">
+                    <div class="control-group"><label>Dynamic</label><input type="range" id="dynamicVariation" class="slider" value="50"><span class="slider-value" id="dynamicVariationValue">50</span></div>
+                    <div class="control-group"><label>Compression</label><input type="range" id="compression" class="slider" value="0"><span class="slider-value" id="compressionValue">0</span></div>
                 </div>
-                <div class="control-panel" id="pitchControls"><h3 style="color:#00d4ff;">Pitch & Vibrato</h3>
-                    <div class="control-group"><label>Pitch Shift</label><input type="range" id="pitchShift" min="-12" max="12" value="0" class="slider"><span class="slider-value" id="pitchShiftValue">0</span></div>
-                    <div class="control-group"><label>Fine Pitch</label><input type="range" id="finePitch" min="-50" max="50" value="0" class="slider"><span class="slider-value" id="finePitchValue">0</span></div>
-                    <div class="control-group"><label>Pitch Correction</label><input type="range" id="pitchCorrection" min="0" max="100" value="0" class="slider"><span class="slider-value" id="pitchCorrectionValue">0</span></div>
-                    <div class="control-group"><label>Vibrato Depth</label><input type="range" id="vibratoDepth" min="0" max="100" value="0" class="slider"><span class="slider-value" id="vibratoDepthValue">0</span></div>
-                    <div class="control-group"><label>Vibrato Rate</label><input type="range" id="vibratoRate" min="0" max="20" value="5" step="0.1" class="slider"><span class="slider-value" id="vibratoRateValue">5.0</span></div>
-                    <div class="control-group"><label>Formant Shift</label><input type="range" id="formantShift" min="-12" max="12" value="0" class="slider"><span class="slider-value" id="formantShiftValue">0</span></div>
+                <div class="control-panel" id="pitchControls">
+                    <div class="control-group"><label>Pitch Shift</label><input type="range" id="pitchShift" class="slider" min="-12" max="12" value="0"><span class="slider-value" id="pitchShiftValue">0</span></div>
+                    <div class="control-group"><label>Vibrato</label><input type="range" id="vibratoDepth" class="slider" value="0"><span class="slider-value" id="vibratoDepthValue">0</span></div>
                 </div>
-                <div class="control-panel" id="textureControls"><h3 style="color:#00d4ff;">Texture</h3>
-                    <div class="control-group"><label>EQ Low Freq</label><input type="range" id="eqLowFreq" min="20" max="500" value="100" class="slider"><span class="slider-value" id="eqLowFreqValue">100</span></div>
-                    <div class="control-group"><label>EQ Low Gain</label><input type="range" id="eqLowGain" min="-24" max="24" value="0" class="slider"><span class="slider-value" id="eqLowGainValue">0</span></div>
-                    <div class="control-group"><label>EQ Mid Freq</label><input type="range" id="eqMidFreq" min="200" max="5000" value="1000" class="slider"><span class="slider-value" id="eqMidFreqValue">1000</span></div>
-                    <div class="control-group"><label>EQ Mid Gain</label><input type="range" id="eqMidGain" min="-24" max="24" value="0" class="slider"><span class="slider-value" id="eqMidGainValue">0</span></div>
-                    <div class="control-group"><label>EQ High Freq</label><input type="range" id="eqHighFreq" min="1000" max="20000" value="10000" class="slider"><span class="slider-value" id="eqHighFreqValue">10000</span></div>
-                    <div class="control-group"><label>EQ High Gain</label><input type="range" id="eqHighGain" min="-24" max="24" value="0" class="slider"><span class="slider-value" id="eqHighGainValue">0</span></div>
-                    <div class="control-group"><label>Saturation</label><input type="range" id="saturation" min="0" max="100" value="0" class="slider"><span class="slider-value" id="saturationValue">0</span></div>
-                    <div class="control-group"><label>Reverb</label><input type="range" id="reverbAmount" min="0" max="100" value="0" class="slider"><span class="slider-value" id="reverbAmountValue">0</span></div>
-                    <div class="control-group"><label>Reverb Size</label><select id="reverbSize"><option value="small">Small</option><option value="medium">Medium</option><option value="large" selected>Large</option><option value="huge">Huge</option></select></div>
-                    <div class="control-group"><label>Stereo Width</label><input type="range" id="stereoWidthControl" min="0" max="200" value="100" class="slider"><span class="slider-value" id="stereoWidthControlValue">100</span></div>
-                    <div class="control-group"><label>Harmonic</label><input type="range" id="harmonicEnhancement" min="0" max="100" value="0" class="slider"><span class="slider-value" id="harmonicEnhancementValue">0</span></div>
+                <div class="control-panel" id="textureControls">
+                    <div class="control-group"><label>Saturation</label><input type="range" id="saturation" class="slider" value="0"><span class="slider-value" id="saturationValue">0</span></div>
+                    <div class="control-group"><label>Reverb</label><input type="range" id="reverbAmount" class="slider" value="0"><span class="slider-value" id="reverbAmountValue">0</span></div>
                 </div>
             </div>
         </section>
     </main>
-    <footer class="humanizer-footer" style="margin-top:24px;">
+    <footer style="margin-top:24px;">
         <section class="panel">
             <div class="panel-header"><h2>Player & Export</h2></div>
-            <div class="panel-content">
-                <div class="player-grid">
-                    <div class="player-card"><h4 style="color:#00d4ff;">Original</h4><div><button class="player-btn" id="originalPlayBtn">▶</button><button class="player-btn" id="originalPauseBtn">⏸</button><button class="player-btn" id="originalStopBtn">⏹</button></div><div style="margin:8px 0;"><span id="originalTime">0:00</span> / <span id="originalDuration">0:00</span></div><div><input type="range" id="originalVolume" min="0" max="100" value="80" style="width:100px;"> <span id="originalVolumeValue">80%</span></div></div>
-                    <div class="player-card"><h4 style="color:#00d4ff;">Processed</h4><div><button class="player-btn" id="processedPlayBtn">▶</button><button class="player-btn" id="processedPauseBtn">⏸</button><button class="player-btn" id="processedStopBtn">⏹</button></div><div style="margin:8px 0;"><span id="processedTime">0:00</span> / <span id="processedDuration">0:00</span></div><div><input type="range" id="processedVolume" min="0" max="100" value="80" style="width:100px;"> <span id="processedVolumeValue">80%</span></div></div>
-                </div>
-                <div style="text-align:center;margin:16px 0;"><label><input type="checkbox" id="syncPlayback"> Sync</label> <button class="btn btn-secondary" id="abCompareBtn">A/B</button></div>
-                <div style="background:#12121a;padding:16px;border-radius:8px;"><h4 style="color:#ffd700;">Export</h4><button class="btn" id="exportWavBtn" style="background:#ffd700;color:#0a0a0f;">WAV</button> <button class="btn" id="exportMp3Btn" style="background:#ffd700;color:#0a0a0f;">MP3</button><div style="margin-top:8px;"><select id="mp3Bitrate"><option value="128">128</option><option value="192" selected>192</option><option value="256">256</option><option value="320">320</option></select></div><p id="exportStatus" style="color:#6a6a7a;">Ready</p></div>
-                <div style="text-align:center;margin-top:12px;"><button class="btn" id="cleanupBtn" style="color:#ff4444;border:1px solid #ff4444;background:transparent;">Cleanup</button> <span id="cleanupStatus" style="color:#6a6a7a;">None</span></div>
+            <div class="panel-content" style="text-align:center;">
+                <button class="btn btn-primary" id="exportWavBtn">Export WAV</button>
+                <button class="btn btn-primary" id="exportMp3Btn">Export MP3</button>
+                <p id="exportStatus" style="color:#6a6a7a;margin-top:8px;">Ready</p>
             </div>
         </section>
     </footer>
 </div>
-<div class="modal" id="memoryWarningModal"><div class="modal-content"><h3>Memory Warning</h3><p>Continue?</p><button class="btn btn-primary" id="continueAnyway">Continue</button><button class="btn btn-secondary" id="cancelProcessing">Cancel</button></div></div>
-<div class="modal" id="loadingModal"><div class="modal-content"><h3>Processing</h3><p id="loadingText">...</p><div id="loadingProgress"></div><span id="loadingPercent">0%</span></div></div>
-<div class="modal" id="errorModal"><div class="modal-content"><h3 style="color:#ff4444;">Error</h3><p id="errorMessage"></p><button class="btn btn-primary" id="closeError">Close</button></div></div>
-<script src="compressor.js"></script>
-<script src="pitch-shifter.js"></script>
-<script src="audio-engine.js"></script>
-<script src="main.js"></script>
-<script>document.addEventListener('DOMContentLoaded',()=>{if(typeof initHumanizer==='function')initHumanizer();else console.error('main.js not loaded');});</script>
+
+<script>
+const uploadZone = document.getElementById('uploadZone');
+const audioUpload = document.getElementById('audioUpload');
+const fileInfo = document.getElementById('fileInfo');
+const processBtn = document.getElementById('processBtn');
+const statusText = document.getElementById('statusText');
+const statusBar = document.getElementById('statusBar');
+let audioContext = null;
+let loadedBuffer = null;
+
+uploadZone.addEventListener('click', () => audioUpload.click());
+uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('dragover'); });
+uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('dragover'));
+uploadZone.addEventListener('drop', e => {
+    e.preventDefault();
+    uploadZone.classList.remove('dragover');
+    if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+});
+audioUpload.addEventListener('change', e => {
+    if (e.target.files[0]) handleFile(e.target.files[0]);
+});
+
+async function handleFile(file) {
+    statusText.textContent = 'Loading...';
+    statusBar.classList.add('processing');
+    try {
+        if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const arrayBuffer = await file.arrayBuffer();
+        const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+        loadedBuffer = audioBuffer;
+        document.getElementById('fileName').textContent = file.name;
+        document.getElementById('fileDuration').textContent = formatTime(audioBuffer.duration);
+        document.getElementById('fileSampleRate').textContent = audioBuffer.sampleRate + ' Hz';
+        document.getElementById('fileChannels').textContent = audioBuffer.numberOfChannels;
+        document.getElementById('fileSize').textContent = (file.size / 1024 / 1024).toFixed(2) + ' MB';
+        fileInfo.style.display = 'block';
+        processBtn.disabled = false;
+        statusText.textContent = 'File loaded! Ready to process';
+        statusBar.classList.remove('processing');
+    } catch (err) {
+        statusText.textContent = 'Error: ' + err.message;
+        statusBar.classList.remove('processing');
+        alert('Failed to load: ' + err.message);
+    }
+}
+
+function formatTime(sec) {
+    const m = Math.floor(sec / 60);
+    const s = Math.floor(sec % 60).toString().padStart(2, '0');
+    return m + ':' + s;
+}
+
+document.getElementById('resetBtn').onclick = () => location.reload();
+
+document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.onclick = () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.control-panel').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        const panel = document.getElementById(btn.dataset.tab + 'Controls');
+        if (panel) panel.classList.add('active');
+    };
+});
+
+document.querySelectorAll('.slider').forEach(slider => {
+    const val = document.getElementById(slider.id + 'Value');
+    if (val) slider.oninput = () => val.textContent = slider.value;
+});
+
+processBtn.onclick = () => {
+    if (!loadedBuffer) return alert('Pehle file upload karo');
+    statusText.textContent = 'Processing... (demo mode)';
+    setTimeout(() => {
+        statusText.textContent = 'Done! (Full processing ke liye main.js theek karna hoga)';
+        alert('File processed (demo). Full effects ke liye audio-engine.js connect karna padega.');
+    }, 1500);
+};
+
+console.log('Upload system ready');
+</script>
 </body>
 </html>
