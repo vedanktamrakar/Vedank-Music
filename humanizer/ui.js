@@ -49,42 +49,46 @@ $('hzFile').addEventListener('change',async event=>{
     drawWave($('hzWaveBefore'),audio);drawSpectrum($('hzSpectrum'),m.spectrum);showMetrics('hzMetrics',m);
     $('hzAnalysisNotes').textContent=`Peak and RMS are measured from a mono analysis signal. Tempo (${m.bpm??'unclear'}) and key (${m.key}) are rough estimates, not guaranteed musical transcription. ${m.note}`;
     $('hzAnalysisPanel').hidden=false;$('hzSeparationPanel').hidden=false;$('hzControlsPanel').hidden=false;$('hzRender').disabled=false;$('hzReport').disabled=false;
+    renderStatus('Ready. The original file is preserved and is never overwritten.');
   }catch(error){if(ticket===loadGeneration){status(error?.message||'Could not open this audio file.',true);engine.clear();}}
 });
-
-function measureCorrelation(channels){if(channels.length<2)return null;const a=channels[0],b=channels[1],n=Math.min(a.length,b.length);let s=0,sa=0,sb=0;const step=Math.max(1,Math.floor(n/200000));for(let i=0;i<n;i+=step){s+=a[i]*b[i];sa+=a[i]*a[i];sb+=b[i]*b[i];}return s/Math.sqrt(Math.max(1e-12,sa*sb));}
+function measureCorrelation(channels){if(channels.length<2)return null;const a=channels[0],b=channels[1],stride=Math.max(1,Math.floor(a.length/150000));let aa=0,bb=0,ab=0;for(let i=0;i<a.length;i+=stride){aa+=a[i]*a[i];bb+=b[i]*b[i];ab+=a[i]*b[i];}return aa&&bb?ab/Math.sqrt(aa*bb):null;}
 
 $('hzRender').addEventListener('click',async()=>{
-  cancelled=false;const ticket=loadGeneration;const settings=readSettings();lastSettings=settings;$('hzRender').disabled=true;$('hzCancel').disabled=false;renderStatus('Rendering…');$('hzProgressBar').style.width='0%';
+  cancelled=false;$('hzRender').disabled=true;$('hzCancel').disabled=false;cleanupRendered();$('hzProgressBar').style.width='0%';lastSettings=readSettings();
   try{
-    const rendered=await engine.render(settings,p=>{if(ticket===loadGeneration){$('hzProgressBar').style.width=`${p}%`;renderStatus(typeof p==='object'?p.message||`Rendering ${p.percent}%`:`Rendering ${p}%`);}},()=>cancelled||ticket!==loadGeneration);
-    if(ticket!==loadGeneration)return;
-    const wav=engine.wav(16);afterWavUrl=URL.createObjectURL(wav);$('hzAfterAB').src=afterWavUrl;$('hzAfterPanel').hidden=false;
-    const metrics=await engine.session.metrics; // reuse or recompute if needed
-    showMetrics('hzRenderMetrics',{...metrics,duration:rendered.duration,sampleRate:rendered.sampleRate,channels:rendered.numberOfChannels,peakDb:20*Math.log10(Math.max(...rendered.channels.map(ch=>Math.max(...ch.map(Math.abs))))||1e-9),note:''});
-    ab.matchLoudness(metrics.rms,metrics.rms);
-    $('hzExportWav').disabled=false;$('hzExportMp3').disabled=false;renderStatus('Render complete. Preview and export below.');$('hzProgressBar').style.width='100%';
+    const out=await engine.render(lastSettings,info=>{if(info.stage==='render')$('hzProgressBar').style.width=`${info.percent}%`;renderStatus(info.message||'Processing…');},()=>cancelled);
+    if(cancelled)throw new DOMException('Processing cancelled.','AbortError');
+    const analysis=await analyzeAfter(out);engine.session.renderMetrics=analysis;afterWavUrl=URL.createObjectURL(engine.wav(16));$('hzAfterAB').src=afterWavUrl;
+    $('hzAfterAB').load();$('hzBeforeAB').currentTime=0;$('hzAfterAB').currentTime=0;
+    ab.matchLoudness(engine.session.metrics.rms,analysis.rms);
+    drawWave($('hzWaveAfter'),out);showMetrics('hzAfterMetrics',analysis);$('hzAfterPanel').hidden=false;
+    $('hzExportWav').disabled=false;$('hzExportMp3').disabled=false;
+    const gaps=out.gapMeta?.gaps?.length||0;
+    const durNotice=Math.abs(out.duration-engine.session.original.duration)>.05?` Output duration is ${fmtTime(out.duration)} because varispeed changes song speed.`:'';
+    const gapNotice=out.gapMeta?.skippedReason?` ${out.gapMeta.skippedReason}`:` ${gaps} phrase gaps created.`;
+    renderStatus(`Render complete · ${fmtTime(out.duration)} · ${out.sampleRate.toLocaleString()} Hz.${gapNotice}${durNotice} Listen before exporting.`);
   }catch(error){if(!(cancelled&&error?.name==='AbortError'))renderStatus(error?.message||'Render failed.',true);}
-  finally{if(ticket===loadGeneration){$('hzRender').disabled=false;$('hzCancel').disabled=true;}}
+  finally{$('hzRender').disabled=!engine.session.original;$('hzCancel').disabled=true;}
 });
-
+async function analyzeAfter(out){const {analyzeAudio}=await import('./analysis.js');const result=await analyzeAudio(out,()=>{},engine.session.abortController.signal);result.stereoCorrelation=measureCorrelation(out.channels);return result;}
 $('hzCancel').addEventListener('click',()=>{cancelled=true;$('hzCancel').disabled=true;renderStatus('Cancel requested. The current short render block will finish before stopping.');});
 $('hzReset').addEventListener('click',()=>{document.querySelectorAll('#hzControlsPanel input[type=range]').forEach(input=>input.value=input.defaultValue);$('hzCenterFocus').checked=false;updateLabels();cleanupRendered();renderStatus('Controls reset. The original audio remains loaded.');});
 $('hzClear').addEventListener('click',clearEverything);
 $('hzPlayBefore').addEventListener('click',()=>ab.playBefore());$('hzPlayAfter').addEventListener('click',()=>ab.playAfter());$('hzPauseAB').addEventListener('click',()=>ab.pause());
 $('hzExportWav').addEventListener('click',()=>{try{download(engine.wav(Number($('hzWavBits').value)),`${safeName(engine.session.file?.name)}_humanized_${$('hzWavBits').value}bit.wav`);}catch(e){renderStatus(e.message,true);}});
 $('hzExportMp3').addEventListener('click',async()=>{
-  const ticket=loadGeneration;renderStatus('Starting MP3 export…');
+  const btn=$('hzExportMp3'),ticket=loadGeneration;btn.disabled=true;renderStatus('Encoding MP3 in a separate worker…');
   try{const blob=await engine.mp3(Number($('hzMp3Rate').value),p=>{if(ticket===loadGeneration)renderStatus(`MP3 encoding ${p}%…`);});if(ticket!==loadGeneration)return;download(blob,`${safeName(engine.session.file?.name)}_humanized_${$('hzMp3Rate').value}kbps.mp3`);renderStatus('MP3 export complete.');}
   catch(e){if(ticket===loadGeneration)renderStatus(e.message||'MP3 export failed.',true);}
+  finally{btn.disabled=!engine.session.rendered;}
 });
 $('hzReport').addEventListener('click',()=>{
-  const m=engine.session.metrics,r=engine.session.renderMetrics,s=lastSettings||readSettings();
-  const text=`Vedank Music Humanizer report\nFile: ${engine.session.file?.name||'unknown'}\nOriginal: ${fmtTime(m?.duration)} @ ${m?.sampleRate} Hz, peak ${m?.peakDb?.toFixed(1)} dBFS, tempo ~${m?.bpm||'?'} BPM, key ${m?.key||'?'}\nRendered: ${fmtTime(r?.duration||0)}, settings pitch ${s.pitch} st, tempo ${s.tempo}%, vibrato ${s.vibrato}%\n`;
-  download(new Blob([text],{type:'text/plain'}),'humanizer-report.txt');
+  const session=engine.session;if(!session.metrics)return;
+  const report={tool:'Vedank Music Humanizer V1.0',createdAt:new Date().toISOString(),fileName:session.file?.name||null,privacy:'Audio is processed locally in this browser and is not uploaded by this tool.',notice:'Analysis describes signal properties and does not determine human or AI authorship.',original:session.metrics,settings:lastSettings,processed:session.renderMetrics||null,phraseGaps:session.rendered?.gapMeta||null};
+  download(new Blob([JSON.stringify(report,null,2)],{type:'application/json'}),`${safeName(session.file?.name)}_humanizer-report.json`);
 });
 document.querySelectorAll('#hzControlsPanel input[type=range]').forEach(el=>el.addEventListener('input',updateLabels));
 window.addEventListener('hz-auth-change',event=>{if(!event.detail?.signedIn)clearEverything();});
 window.addEventListener('pagehide',clearEverything);
 updateLabels();
-status('Choose a song to begin.');
