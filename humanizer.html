@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <meta name="description" content="Private, browser-local music analysis and humanization workspace.">
+  <meta name="theme-color" content="#071326">
+  <title>Music Humanizer | Vedank Music</title>
+  <link rel="icon" href="/monogram.webp">
+  <style>
+:root{color-scheme:dark;--hz-bg:#071326;--hz-panel:#0d1d35;--hz-panel2:#102442;--hz-line:rgba(140,176,235,.18);--hz-text:#eef4ff;--hz-muted:#a7b8d4;--hz-blue:#4b89ff;--hz-red:#ef5363;--hz-gold:#e8bd5a;--hz-radius:20px;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 12% 0%,rgba(25,76,150,.35),transparent 34rem),radial-gradient(ellipse at 90% 20%,rgba(110,30,55,.20),transparent 32rem),var(--hz-bg);color:var(--hz-text)}button,input,select{font:inherit}.hz-shell{max-width:1120px;padding:18px 16px 56px;margin:auto}.hz-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}.hz-brand{display:flex;align-items:center;gap:13px}.hz-brand img{width:170px;max-width:45vw;height:auto;object-fit:contain}.hz-brand span,.hz-eyebrow,.hz-label{letter-spacing:.14em;font-size:10px;font-weight:900;color:var(--hz-gold)}.hz-panel{background:linear-gradient(145deg,rgba(20,42,73,.95),rgba(9,24,45,.97));border:1px solid var(--hz-line);border-radius:var(--hz-radius);padding:clamp(16px,3vw,28px);margin:16px 0;box-shadow:0 18px 54px rgba(0,0,0,.16)}.hz-login{max-width:480px;margin:8vh auto 0}.hz-login h1,.hz-hero h1{font-size:clamp(34px,6vw,56px);letter-spacing:-.045em;line-height:1.02;margin:12px 0}.hz-hero h1 span{color:var(--hz-blue)}.hz-panel h2{font-size:clamp(23px,4vw,31px);margin:8px 0 12px;letter-spacing:-.025em}.hz-panel h3{margin:0 0 12px;font-size:18px}.hz-muted{color:var(--hz-muted);font-size:14px;line-height:1.7}.hz-notice,.hz-experiment,.hz-warning{background:rgba(232,189,90,.09);border:1px solid rgba(232,189,90,.25);border-radius:13px;padding:12px 14px;color:#e5d5a7;font-size:13px;line-height:1.6;margin:15px 0}.hz-upload{display:flex;flex-direction:column;align-items:center;gap:7px;margin-top:18px;padding:25px 15px;border:1.5px dashed rgba(100,155,255,.72);border-radius:17px;background:rgba(55,115,220,.07);cursor:pointer;text-align:center}.hz-upload:hover{background:rgba(55,115,220,.13)}.hz-upload-icon{display:grid;place-items:center;width:42px;height:42px;border-radius:50%;background:rgba(75,137,255,.2);color:#8cb4ff;font-size:25px}.hz-upload small,.hz-switch-row small{color:var(--hz-muted);font-size:12px;line-height:1.5}.hz-upload input{max-width:100%;color:var(--hz-muted);margin-top:7px}.hz-status{border-radius:12px;padding:11px 13px;background:rgba(75,137,255,.1);border:1px solid rgba(75,137,255,.16);font-size:13px;line-height:1.5;color:#c9dcff;margin:12px 0}.hz-status.is-error{background:rgba(239,83,99,.09);color:#ffb8c0;border-color:rgba(239,83,99,.24)}.hz-file-info,.hz-footnote,.hz-small{font-size:12px;line-height:1.6;color:var(--hz-muted)}.hz-footnote{margin-top:20px}.hz-field{display:grid;gap:7px;font-size:12px;font-weight:800;color:var(--hz-muted);margin:12px 0}.hz-field input,.hz-field select{padding:12px;border-radius:11px;border:1px solid var(--hz-line);background:#08182c;color:var(--hz-text);min-width:0}.hz-actions{display:flex;flex-wrap:wrap;gap:9px;margin:14px 0}.hz-button{border:1px solid transparent;border-radius:12px;padding:11px 16px;background:linear-gradient(120deg,#2868df,#4d89ff);color:#fff;font-size:13px;font-weight:850;cursor:pointer;box-shadow:0 6px 18px rgba(30,91,210,.22)}.hz-button:hover{filter:brightness(1.09)}.hz-button:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}.hz-button-quiet{background:rgba(255,255,255,.04);border-color:var(--hz-line);box-shadow:none;color:#d8e6ff}.hz-button-danger{background:rgba(239,83,99,.1);border-color:rgba(239,83,99,.28);color:#ffb8c0;box-shadow:none}.hz-section-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.hz-player-card{background:rgba(4,15,29,.38);border:1px solid var(--hz-line);border-radius:14px;padding:14px;margin:12px 0}.hz-player-card audio{width:100%;margin-top:8px}.hz-visual-grid,.hz-ab-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px;margin:14px 0}.hz-visual-grid canvas{display:block;width:100%;height:150px;border:1px solid var(--hz-line);border-radius:12px;background:rgba(2,10,20,.45);margin-top:8px}.hz-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px;margin:14px 0}.hz-metric{background:rgba(255,255,255,.035);border:1px solid var(--hz-line);border-radius:13px;padding:12px;min-width:0}.hz-metric span{display:block;color:var(--hz-muted);font-size:11px}.hz-metric strong{display:block;font-size:20px;margin-top:5px;overflow-wrap:anywhere}.hz-metrics-compact{grid-template-columns:repeat(2,minmax(0,1fr))}.hz-analysis-note{color:var(--hz-muted);font-size:12px;line-height:1.6}.hz-switch-row{display:flex;gap:12px;align-items:flex-start;padding:14px;background:rgba(255,255,255,.035);border:1px solid var(--hz-line);border-radius:14px}.hz-switch-row input{margin-top:4px;accent-color:var(--hz-blue);width:18px;height:18px}.hz-switch-row span{display:grid;gap:5px}.hz-group{border-top:1px solid var(--hz-line);padding-top:17px;margin-top:18px}.hz-controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}.hz-control{display:grid;gap:10px;padding:13px;border-radius:13px;border:1px solid var(--hz-line);background:rgba(3,14,28,.28)}.hz-control span{display:flex;justify-content:space-between;gap:10px;align-items:baseline;color:#e7efff;font-size:12px;font-weight:800}.hz-control output{color:#86b0ff;white-space:nowrap}.hz-control input{width:100%;accent-color:var(--hz-blue)}.hz-progress{height:8px;background:rgba(255,255,255,.08);border-radius:99px;overflow:hidden;margin-top:18px}.hz-progress div{height:100%;width:0;background:linear-gradient(90deg,#2868df,#81b1ff,#e8bd5a);transition:width .12s}.hz-export{margin-top:20px;border-top:1px solid var(--hz-line);padding-top:18px}.hz-export-row{display:flex;align-items:end;gap:12px;flex-wrap:wrap}.hz-export-row .hz-field{flex:1 1 180px}.hz-footer{text-align:center;color:#7289ac;font-size:10px;font-weight:800;letter-spacing:.16em;padding:18px}.hz-hidden,[hidden]{display:none!important}code{font-size:11px;color:#bfd6ff;overflow-wrap:anywhere}
+@media(max-width:650px){.hz-shell{padding:12px 10px 40px}.hz-panel{border-radius:16px;padding:15px}.hz-visual-grid,.hz-ab-grid{grid-template-columns:1fr}.hz-visual-grid canvas{height:120px}.hz-controls{grid-template-columns:1fr}.hz-section-head{align-items:flex-start}.hz-section-head .hz-button{padding:9px 11px}.hz-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.hz-brand span{font-size:9px}}
+
+  </style>
+</head>
+<body>
+  <main class="hz-shell">
+    <header class="hz-top">
+      <div class="hz-brand"><img src="/wordmark.webp" alt="Vedank Music"><span>PRIVATE STUDIO</span></div>
+      <button id="hzSignOut" class="hz-button hz-button-quiet" hidden>Sign out</button>
+    </header>
+
+    <section id="hzLogin" class="hz-login hz-panel">
+      <div class="hz-eyebrow">VEDANK MUSIC · PRIVATE ACCESS</div>
+      <h1>Music Humanizer</h1>
+      <p class="hz-muted">Sign in with the account assigned to you. Audio processing starts only after sign-in.</p>
+      <label class="hz-field">Email<input id="hzEmail" type="email" autocomplete="username" placeholder="Email address"></label>
+      <label class="hz-field">Password<input id="hzPassword" type="password" autocomplete="current-password" placeholder="Password"></label>
+      <div class="hz-actions"><button id="hzLoginButton" class="hz-button">Sign in</button><button id="hzResetPassword" class="hz-button hz-button-quiet">Forgot password?</button></div>
+      <p id="hzLoginMessage" class="hz-status" role="status"></p>
+      <p class="hz-footnote">This page is unlisted, not truly private. The static HTML and JavaScript are still public files; the login gate only hides the interface.</p>
+    </section>
+
+    <div id="hzWorkspace" hidden>
+      <section class="hz-hero hz-panel">
+        <div class="hz-eyebrow">VEDANK MUSIC · HUMANIZER V1.0</div>
+        <h1>Shape the performance.<br><span>Keep the music.</span></h1>
+        <p class="hz-muted">Analyse a full song, make controlled musical adjustments, compare the original and processed versions, then export. The audio stays in this browser; it is not uploaded by this page.</p>
+        <div class="hz-notice"><strong>Honest processing:</strong> this tool improves audible musical qualities. It does not erase AI provenance, remove watermarks, or guarantee a detector result. Measurements are not an authorship verdict.</div>
+        <label class="hz-upload" for="hzFile">
+          <span class="hz-upload-icon">↑</span><strong>Choose your full song</strong>
+          <small>WAV, MP3, M4A and browser-supported audio · up to 100 MB · target length 2–5 minutes</small>
+          <input id="hzFile" type="file" accept="audio/*,.wav,.mp3,.m4a,.aac,.flac,.ogg,.opus,.aiff,.aif">
+        </label>
+        <div id="hzStatus" class="hz-status" role="status">Choose a song to begin.</div>
+        <div id="hzFileInfo" class="hz-file-info"></div>
+      </section>
+
+      <section id="hzAnalysisPanel" class="hz-panel" hidden>
+        <div class="hz-section-head"><div><div class="hz-eyebrow">01 · ANALYSIS</div><h2>Understand your audio</h2></div><button id="hzReport" class="hz-button hz-button-quiet" disabled>Export report JSON</button></div>
+        <div class="hz-player-card"><div class="hz-label">ORIGINAL TRACK</div><audio id="hzOriginalPlayer" controls preload="metadata"></audio></div>
+        <div class="hz-visual-grid">
+          <div><div class="hz-label">WAVEFORM · ORIGINAL</div><canvas id="hzWaveBefore" width="1200" height="190"></canvas></div>
+          <div><div class="hz-label">AVERAGE SPECTRUM</div><canvas id="hzSpectrum" width="1200" height="190"></canvas></div>
+        </div>
+        <div id="hzMetrics" class="hz-metrics"></div>
+        <div class="hz-analysis-note" id="hzAnalysisNotes">Analysis is descriptive. Tempo and key are rough estimates.</div>
+      </section>
+
+      <section id="hzSeparationPanel" class="hz-panel" hidden>
+        <div class="hz-eyebrow">02 · VOCAL / INSTRUMENTAL EXPERIMENT</div>
+        <h2>Choose the processing layer</h2>
+        <p class="hz-muted">The built-in option separates the stereo centre and sides only. It is <strong>not AI vocal separation</strong>; centred bass, kick, snare and other instruments can remain in the centre layer.</p>
+        <label class="hz-switch-row"><input id="hzCenterFocus" type="checkbox"><span><strong>Focus processing on the centre layer</strong><small>Processes the mid signal and recombines it with the untouched side signal.</small></span></label>
+        <div class="hz-experiment">Neural stem separation is not enabled in this build. It needs a model, licensing verification and a real free-compute test before it can be enabled safely.</div>
+      </section>
+
+      <section id="hzControlsPanel" class="hz-panel" hidden>
+        <div class="hz-section-head"><div><div class="hz-eyebrow">03 · HUMANIZATION CONTROLS</div><h2>Shape the sound</h2></div><button id="hzReset" class="hz-button hz-button-quiet">Reset controls</button></div>
+        <div class="hz-group"><h3>Vocal expression & phrase cleanup</h3><p class="hz-small">These controls affect the selected processing path. Without a true vocal stem, centred instruments may also be affected.</p>
+          <div class="hz-controls">
+            <label class="hz-control"><span>Expression intensity <output id="hzExpressionOut">0%</output></span><input id="hzExpression" type="range" min="0" max="100" value="0"></label>
+            <label class="hz-control"><span>High-frequency softening <output id="hzDeEssOut">0%</output></span><input id="hzDeEss" type="range" min="0" max="100" value="0"></label>
+            <label class="hz-control"><span>Breath-gap amount <output id="hzBreathOut">Off</output></span><input id="hzBreath" type="range" min="0" max="100" value="0"></label>
+            <label class="hz-control"><span>Quiet threshold below peak <output id="hzBreathThresholdOut">40 dB</output></span><input id="hzBreathThreshold" type="range" min="20" max="60" step="1" value="40"></label>
+            <label class="hz-control"><span>Maximum phrase gaps <output id="hzBreathMaxOut">24</output></span><input id="hzBreathMax" type="range" min="1" max="100" step="1" value="24"></label>
+          </div>
+          <p class="hz-small">Breath-gap cleanup detects quiet phrase boundaries and can create 20–30 ms gaps. It can cut word tails or centred instruments. Use gently and listen carefully.</p>
+        </div>
+        <div class="hz-group"><h3>Pitch, vibrato & timing</h3>
+          <div class="hz-controls">
+            <label class="hz-control"><span>Pitch / varispeed <output id="hzPitchOut">0.0 semitones</output></span><input id="hzPitch" type="range" min="-2" max="2" step="0.1" value="0"></label>
+            <label class="hz-control"><span>Tempo change <output id="hzTempoOut">0.0%</output></span><input id="hzTempo" type="range" min="-5" max="5" step="0.25" value="0"></label>
+            <label class="hz-control"><span>Vibrato depth <output id="hzVibratoOut">0%</output></span><input id="hzVibrato" type="range" min="0" max="100" step="5" value="0"></label>
+            <label class="hz-control"><span>Vibrato rate <output id="hzVibratoRateOut">5.0 Hz</output></span><input id="hzVibratoRate" type="range" min="2" max="8" step="0.25" value="5"></label>
+            <label class="hz-control"><span>Timing modulation <output id="hzTimingOut">0%</output></span><input id="hzTiming" type="range" min="0" max="100" step="5" value="0"></label>
+          </div>
+          <p class="hz-warning">Pitch / varispeed changes pitch and duration together. Independent high-quality pitch shifting and vocal micro-timing are experimental and are not claimed as completed here.</p>
+        </div>
+        <div class="hz-group"><h3>Dynamics & vocal presence</h3>
+          <div class="hz-controls">
+            <label class="hz-control"><span>Compression <output id="hzCompOut">Off</output></span><input id="hzComp" type="range" min="0" max="100" step="5" value="0"></label>
+            <label class="hz-control"><span>Expansion / gate <output id="hzGateOut">Off</output></span><input id="hzGate" type="range" min="0" max="100" step="5" value="0"></label>
+            <label class="hz-control"><span>Transient attack <output id="hzTransientOut">0%</output></span><input id="hzTransient" type="range" min="0" max="100" step="5" value="0"></label>
+            <label class="hz-control"><span>Output gain <output id="hzGainOut">0 dB</output></span><input id="hzGain" type="range" min="-9" max="9" step="0.5" value="0"></label>
+          </div>
+        </div>
+        <div class="hz-group"><h3>Music texture & processing</h3>
+          <div class="hz-controls">
+            <label class="hz-control"><span>Low shelf <output id="hzLowOut">0 dB</output></span><input id="hzLow" type="range" min="-9" max="9" step="0.5" value="0"></label>
+            <label class="hz-control"><span>Presence / mid EQ <output id="hzMidOut">0 dB</output></span><input id="hzMid" type="range" min="-9" max="9" step="0.5" value="0"></label>
+            <label class="hz-control"><span>High shelf <output id="hzHighOut">0 dB</output></span><input id="hzHigh" type="range" min="-9" max="9" step="0.5" value="0"></label>
+            <label class="hz-control"><span>Warmth / saturation <output id="hzWarmOut">0%</output></span><input id="hzWarm" type="range" min="0" max="60" step="2" value="0"></label>
+            <label class="hz-control"><span>Room reverb <output id="hzReverbOut">0%</output></span><input id="hzReverb" type="range" min="0" max="30" step="1" value="0"></label>
+            <label class="hz-control"><span>Stereo width <output id="hzWidthOut">100%</output></span><input id="hzWidth" type="range" min="0" max="150" step="5" value="100"></label>
+          </div>
+        </div>
+        <div class="hz-actions"><button id="hzRender" class="hz-button" disabled>Render humanized version</button><button id="hzCancel" class="hz-button hz-button-danger" disabled>Cancel</button><button id="hzClear" class="hz-button hz-button-quiet">Clear everything</button></div>
+        <div class="hz-progress"><div id="hzProgressBar"></div></div><div id="hzRenderStatus" class="hz-status">Adjust controls, then render a copy. The original stays unchanged.</div>
+      </section>
+
+      <section id="hzAfterPanel" class="hz-panel" hidden>
+        <div class="hz-eyebrow">04 · A/B COMPARISON</div><h2>Listen before you export</h2>
+        <div class="hz-ab-grid">
+          <div class="hz-player-card"><div class="hz-label">BEFORE · LOUDNESS-MATCHED</div><audio id="hzBeforeAB" controls preload="metadata"></audio></div>
+          <div class="hz-player-card"><div class="hz-label">AFTER · LOUDNESS-MATCHED</div><audio id="hzAfterAB" controls preload="metadata"></audio></div>
+        </div>
+        <div class="hz-visual-grid"><div><div class="hz-label">WAVEFORM · PROCESSED</div><canvas id="hzWaveAfter" width="1200" height="190"></canvas></div><div><div class="hz-label">PROCESSED MEASUREMENTS</div><div id="hzAfterMetrics" class="hz-metrics hz-metrics-compact"></div></div></div>
+        <div class="hz-actions"><button id="hzPlayBefore" class="hz-button hz-button-quiet">Play before</button><button id="hzPlayAfter" class="hz-button hz-button-quiet">Play after</button><button id="hzPauseAB" class="hz-button hz-button-quiet">Pause</button></div>
+        <div class="hz-export"><h3>Export processed audio</h3><div class="hz-export-row"><label class="hz-field">WAV bit depth<select id="hzWavBits"><option value="16">16-bit PCM</option><option value="24">24-bit PCM</option></select></label><button id="hzExportWav" class="hz-button" disabled>Export WAV</button></div><div class="hz-export-row"><label class="hz-field">MP3 bitrate<select id="hzMp3Rate"><option>128</option><option>192</option><option>256</option><option selected>320</option></select></label><button id="hzExportMp3" class="hz-button hz-button-quiet" disabled>Export MP3</button></div><p class="hz-small">WAV export is local. MP3 export uses the separate LAME-based LGPL encoder file at <code>/humanizer/vendor/lame.min.js</code>; see the included setup note and licence notice.</p></div>
+      </section>
+
+      <footer class="hz-footer">VEDANK MUSIC HUMANIZER V1.0 · LOCAL BROWSER PROCESSING · NO SONG UPLOAD</footer>
+    </div>
+  </main>
+
+  <script type="module" src="/humanizer/ui.js"></script>
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, sendPasswordResetEmail } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+    const cfg = { apiKey: 'AIzaSyDtOGtRr5MjFwQ0igyQPy7DmGYWl1PO-7k', authDomain: 'vedank-music.firebaseapp.com', projectId: 'vedank-music', appId: '1:838971683062:web:3b94657f165e8ef42e3cd7' };
+    const auth = getAuth(initializeApp(cfg));
+    const $ = id => document.getElementById(id);
+    const say = (msg, bad=false) => { $('hzLoginMessage').textContent = msg; $('hzLoginMessage').classList.toggle('is-error', bad); };
+    $('hzLoginButton').addEventListener('click', async () => {
+      $('hzLoginButton').disabled = true;
+      try { await signInWithEmailAndPassword(auth, $('hzEmail').value.trim(), $('hzPassword').value); say('Signed in.'); }
+      catch (e) { say('Sign-in failed. Check the account details and try again.', true); }
+      finally { $('hzLoginButton').disabled = false; }
+    });
+    $('hzPassword').addEventListener('keydown', e => { if (e.key === 'Enter') $('hzLoginButton').click(); });
+    $('hzResetPassword').addEventListener('click', async () => {
+      const email = $('hzEmail').value.trim();
+      if (!email) { say('Enter your email address first.', true); return; }
+      try { await sendPasswordResetEmail(auth, email); say('Password reset email requested.'); }
+      catch (e) { say('Could not request a reset email. Check the address or Firebase settings.', true); }
+    });
+    $('hzSignOut').addEventListener('click', () => signOut(auth));
+    onAuthStateChanged(auth, user => {
+      $('hzLogin').hidden = !!user;
+      $('hzWorkspace').hidden = !user;
+      $('hzSignOut').hidden = !user;
+      window.dispatchEvent(new CustomEvent('hz-auth-change', { detail: { signedIn: !!user } }));
+    });
+  </script>
+</body>
+</html>
